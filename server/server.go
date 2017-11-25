@@ -2,45 +2,105 @@ package server
 
 import (
   "fmt"
-  "log"
-  "time"
   "net/http"
+  "io/ioutil"
+  "encoding/json"
+
+  //"github.com/prql/prqld/auth"
+
+  log "github.com/sirupsen/logrus"
 )
+
+const (
+  HeaderName string = "X-PrQL-Token"
+)
+
+var (
+  logger log.FieldLogger
+)
+
 
 type Config struct {
   Port int16
-  ReadTimeout time.Duration
-  WriteTimeout time.Duration
 }
 
-func handler(writer http.ResponseWriter, r *http.Request) {
-  fmt.Println("Received request!")
+type postRequestBody struct {
+  Query string
 }
 
 
-/*
-* Public
+func Startup(config *Config) {
+  mux := http.NewServeMux()
+  port := fmt.Sprintf(":%d", config.Port)
+
+  defer func() {
+    log.Println("Starting server")
+    http.ListenAndServe(port, mux)
+  }()
+
+  mux.HandleFunc("/", handler)
+}
+
+
+/**
+* Private
 */
 
-func Start(config *Config) {
+func handler(w http.ResponseWriter, r *http.Request) {
+  logger = log.WithFields(log.Fields{"IP": r.RemoteAddr})
 
-  // Give defaults for timeouts
-  if config.ReadTimeout == 0 {
-    config.ReadTimeout = 10 * time.Second
+  token := r.Header.Get(HeaderName)
+  if token == "" {
+    fail(w, "No token")
+    return
+  }
+  logger.Info(fmt.Sprintf("Received request using token %s", token))
+
+  query := getQuery(r)
+  if query == "" {
+    fail(w, "No query")
+    return
+  }
+  logger.Info(fmt.Sprintf("Token %s was used for the following query: \"%s\"", token, query))
+}
+
+
+func getQuery(r *http.Request) string {
+  var query string
+
+  if r.Method == "GET" {
+    q := r.URL.Query()
+
+    if len(q["query"]) != 0 {
+      query = q["query"][0]
+    }
   }
 
-  if config.WriteTimeout == 0 {
-    config.WriteTimeout = 10 * time.Second
+  if r.Method == "POST" {
+    var body postRequestBody
+
+    bodyBytes, err := ioutil.ReadAll(r.Body)
+    if err != nil {
+      logger.Panic(err) 
+    }
+
+    if len(bodyBytes) != 0 {
+      err = json.Unmarshal(bodyBytes, &body)
+      if err != nil {
+        logger.Panic(err) 
+      }
+
+      if body.Query != "" {
+        query = body.Query
+      }
+    }
   }
 
-  // Setup server
-  s := &http.Server {
-    Addr: fmt.Sprintf(":%d", config.Port),
-    ReadTimeout: config.ReadTimeout,
-    WriteTimeout: config.WriteTimeout,
-  }
+  return query
+} 
 
-  s.HandleFunc("/", handler)
 
-  log.Fatal(s.ListenAndServe())
+func fail(w http.ResponseWriter, message string) {
+  logger.Error(message)
+  http.Error(w, message, http.StatusBadRequest)
 }

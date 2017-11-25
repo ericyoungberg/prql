@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-  server.Start(server.Config{Port: 1999})
+  server.Start(&server.Config{Port: 1999})
 }

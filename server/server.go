@@ -15,19 +15,9 @@ const (
   HeaderName string = "X-PrQL-Token"
 )
 
-var (
-  logger log.FieldLogger
-)
-
-
 type Config struct {
   Port int16
 }
-
-type postRequestBody struct {
-  Query string
-}
-
 
 func Startup(config *Config) {
   mux := http.NewServeMux()
@@ -46,22 +36,30 @@ func Startup(config *Config) {
 * Private
 */
 
+var (
+  ipLogger log.FieldLogger
+)
+
+type postRequestBody struct {
+  Query string
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
-  logger = log.WithFields(log.Fields{"IP": r.RemoteAddr})
+  ipLogger = log.WithFields(log.Fields{"IP": r.RemoteAddr})
 
   token := r.Header.Get(HeaderName)
   if token == "" {
     fail(w, "No token")
     return
   }
-  logger.Info(fmt.Sprintf("Received request using token %s", token))
+  ipLogger.Info(fmt.Sprintf("Received request using token %s", token))
 
   query := getQuery(r)
   if query == "" {
     fail(w, "No query")
     return
   }
-  logger.Info(fmt.Sprintf("Token %s was used for the following query: \"%s\"", token, query))
+  ipLogger.Info(fmt.Sprintf("Token %s was used for the following query: \"%s\"", token, query))
 }
 
 
@@ -81,13 +79,13 @@ func getQuery(r *http.Request) string {
 
     bodyBytes, err := ioutil.ReadAll(r.Body)
     if err != nil {
-      logger.Panic(err) 
+      ipLogger.Panic(err) 
     }
 
     if len(bodyBytes) != 0 {
       err = json.Unmarshal(bodyBytes, &body)
       if err != nil {
-        logger.Panic(err) 
+        ipLogger.Panic(err) 
       }
 
       if body.Query != "" {
@@ -99,8 +97,7 @@ func getQuery(r *http.Request) string {
   return query
 } 
 
-
 func fail(w http.ResponseWriter, message string) {
-  logger.Error(message)
+  ipLogger.Error(message)
   http.Error(w, message, http.StatusBadRequest)
 }

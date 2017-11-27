@@ -26,17 +26,15 @@ func Startup(config *Config) {
   port := fmt.Sprintf(":%d", config.Port)
   host = fmt.Sprintf("127.0.0.1%s", port)
 
-  defer func() {
-    log.Info("Starting server")
-    http.ListenAndServe(port, mux)
-  }()
-
   mux.HandleFunc("/", handler)
   mux.HandleFunc("/check", func(w http.ResponseWriter, req *http.Request) { 
     w.WriteHeader(http.StatusOK)
   })
 
   go checkServerStatus()
+
+  log.Info("Starting server")
+  http.ListenAndServe(port, mux)
 }
 
 

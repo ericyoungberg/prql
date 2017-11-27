@@ -2,6 +2,8 @@ package server
 
 import (
   "fmt"
+  "time"
+  "net/url"
   "net/http"
   "io/ioutil"
   "encoding/json"
@@ -22,13 +24,19 @@ type Config struct {
 func Startup(config *Config) {
   mux := http.NewServeMux()
   port := fmt.Sprintf(":%d", config.Port)
+  host = fmt.Sprintf("127.0.0.1%s", port)
 
   defer func() {
-    log.Println("Starting server")
+    log.Info("Starting server")
     http.ListenAndServe(port, mux)
   }()
 
   mux.HandleFunc("/", handler)
+  mux.HandleFunc("/check", func(w http.ResponseWriter, req *http.Request) { 
+    w.WriteHeader(http.StatusOK)
+  })
+
+  go checkServerStatus()
 }
 
 
@@ -38,10 +46,42 @@ func Startup(config *Config) {
 
 var (
   ipLogger log.FieldLogger
+  host string
 )
 
 type postRequestBody struct {
   Query string
+}
+
+func checkServerStatus() {
+  running := false
+
+  for i := 0; i < 10; i += 1 {
+    time.Sleep(time.Second) 
+    endpoint := url.URL{Scheme: "http", Host: host, Path: "check"}
+    res, err := http.Get(endpoint.String())
+
+    if err != nil {
+      fmt.Println("error: ", err)
+      continue
+    }
+
+    res.Body.Close()
+
+    if res.StatusCode != http.StatusOK {
+      fmt.Println(res.StatusCode)
+      continue 
+    }
+
+    running = true
+    break
+  } 
+
+  if running {
+    log.Info(fmt.Sprintf("Server listening at %s", host))
+  } else {
+    log.Panic(fmt.Sprintf("Cannot connect to server at %s.\nExiting...", host)) 
+  }
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {

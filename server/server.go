@@ -8,8 +8,6 @@ import (
   "io/ioutil"
   "encoding/json"
 
-  //"github.com/prql/prqld/auth"
-
   log "github.com/sirupsen/logrus"
 )
 

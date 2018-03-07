@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
   "fmt"
@@ -19,7 +19,12 @@ type Config struct {
   Port int16
 }
 
-func Startup(config *Config) {
+var (
+  ipLogger log.FieldLogger
+  host string
+)
+
+func StartServer(config *Config) {
   mux := http.NewServeMux()
   port := fmt.Sprintf(":%d", config.Port)
   host = fmt.Sprintf("127.0.0.1%s", port)
@@ -39,11 +44,6 @@ func Startup(config *Config) {
 /**
 * Private
 */
-
-var (
-  ipLogger log.FieldLogger
-  host string
-)
 
 type postRequestBody struct {
   Query string
@@ -96,6 +96,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
     return
   }
   ipLogger.Info(fmt.Sprintf("Token %s was used for the following query: \"%s\"", token, query))
+
+  // Perform Query Here
 }
 
 

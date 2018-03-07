@@ -20,7 +20,7 @@ type Config struct {
 }
 
 var (
-  ipLogger log.FieldLogger
+  IpLogger log.FieldLogger
   host string
 )
 
@@ -81,23 +81,25 @@ func checkServerStatus() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-  ipLogger = log.WithFields(log.Fields{"IP": r.RemoteAddr})
+  IpLogger = log.WithFields(log.Fields{"IP": r.RemoteAddr})
 
   token := r.Header.Get(HeaderName)
   if token == "" {
     fail(w, "No token")
     return
   }
-  ipLogger.Info(fmt.Sprintf("Received request using token %s", token))
+  IpLogger.Info(fmt.Sprintf("Received request using token %s", token))
 
   query := getQuery(r)
   if query == "" {
     fail(w, "No query")
     return
   }
-  ipLogger.Info(fmt.Sprintf("Token %s was used for the following query: \"%s\"", token, query))
+  IpLogger.Info(fmt.Sprintf("Token %s was used for the following query: \"%s\"", token, query))
 
   // Perform Query Here
+  _ = GetDatabase(token)
+
 }
 
 
@@ -117,13 +119,13 @@ func getQuery(r *http.Request) string {
 
     bodyBytes, err := ioutil.ReadAll(r.Body)
     if err != nil {
-      ipLogger.Panic(err) 
+      IpLogger.Panic(err) 
     }
 
     if len(bodyBytes) != 0 {
       err = json.Unmarshal(bodyBytes, &body)
       if err != nil {
-        ipLogger.Panic(err) 
+        IpLogger.Panic(err) 
       }
 
       if body.Query != "" {
@@ -136,6 +138,6 @@ func getQuery(r *http.Request) string {
 } 
 
 func fail(w http.ResponseWriter, message string) {
-  ipLogger.Error(message)
+  IpLogger.Error(message)
   http.Error(w, message, http.StatusBadRequest)
 }

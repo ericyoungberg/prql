@@ -11,7 +11,7 @@ import (
 type TokenEntry struct {
   user string
   password string
-  dbserver string
+  dbtag string
   dbname string
   domains []string
   living bool
@@ -34,8 +34,8 @@ var (
 * 
 * password - The database user's password.
 * 
-* dbserver - The tag that was defined by the user while using the cli to store the credentials
-*            of the database server.
+* dbtag - The tag that was defined by the user while using the cli to store the credentials
+*         of the database server.
 *
 * dbname - The name of the database to create the connection to.
 *
@@ -65,7 +65,7 @@ func PopulateTokenPool() {
     TokenPool[parts[0]] = TokenEntry {
       user: parts[1], 
       password: parts[2], 
-      dbserver: parts[3], 
+      dbtag: parts[3], 
       dbname: parts[4], 
       domains: domains, 
       living: living,

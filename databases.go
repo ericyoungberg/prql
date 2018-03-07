@@ -1,6 +1,7 @@
 package main
 
 import (
+  "fmt"
   "strconv"
   "database/sql"
 
@@ -19,6 +20,7 @@ type DatabaseEntry struct {
 
 var (
   DatabasePool = make(map[string]DatabaseEntry)
+  databaseConnections = make(map[string]*sql.DB)
 )
 
 
@@ -67,9 +69,38 @@ func PopulateDatabasePool() {
 }
 
 
-func ConnectDatabase() {
-  _, err := sql.Open("postgres", "user=eyoungberg dbname=myscprod sslmod=verify-full")
-  if err != nil {
-    log.Fatal(err) 
+func GetDatabase(token string) *sql.DB {
+  tokenEntry, ok := TokenPool[token]
+  if ok != true {
+    IpLogger.Panic("Invalid token") 
+  }
+
+  databaseEntry, ok := DatabasePool[tokenEntry.dbtag]
+  if ok != true {
+    IpLogger.Panic("Invalid database tag")
+  }
+
+  db, ok := databaseConnections[tokenEntry.dbtag] 
+  if ok != true {
+    dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%s"
+    dbConnStringVars := []interface{}{tokenEntry.user, tokenEntry.password, tokenEntry.dbname, databaseEntry.host, databaseEntry.port}
+    dbConnString := fmt.Sprintf(dbConnStringFmt, dbConnStringVars...)
+
+    db, err := sql.Open(databaseEntry.driver, dbConnString)
+    if err != nil {
+      IpLogger.Fatal(err) 
+    }
+
+    databaseConnections[tokenEntry.dbtag] = db
+  }
+
+  return db
+}
+
+
+func CloseDatabaseConnections() {
+  for k, v := range databaseConnections {
+    v.Close()  
+    delete(databaseConnections, k)
   }
 }

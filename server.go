@@ -83,10 +83,18 @@ func checkServerStatus() {
 func handler(w http.ResponseWriter, r *http.Request) {
   IpLogger = log.WithFields(log.Fields{"IP": r.RemoteAddr})
 
-  token := r.Header.Get(HeaderName)
+  var token string
+
+  token = r.Header.Get(HeaderName)
   if token == "" {
-    fail(w, "No token")
-    return
+    tokenParam := r.URL.Query()["token"]
+
+    if len(tokenParam) != 0 {
+      token = tokenParam[0] 
+    } else {
+      fail(w, "No token")
+      return
+    }
   }
   IpLogger.Info(fmt.Sprintf("Received request using token %s", token))
 
@@ -97,9 +105,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
   }
   IpLogger.Info(fmt.Sprintf("Token %s was used for the following query: \"%s\"", token, query))
 
-  // Perform Query Here
-  _ = GetDatabase(token)
+  data, err := PerformQuery(query, token)
+  if err != nil {
+    fail(w, "Query failed") 
+  }
 
+  json.NewEncoder(w).Encode(data)
 }
 
 

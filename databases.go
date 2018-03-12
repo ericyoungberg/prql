@@ -69,7 +69,38 @@ func PopulateDatabasePool() {
 }
 
 
-func GetDatabase(token string) *sql.DB {
+func CloseDatabaseConnections() {
+  for k, v := range databaseConnections {
+    v.Close()  
+    delete(databaseConnections, k)
+  }
+}
+
+
+func PerformQuery(query string, token string) (map[string]interface{}, error) {
+  db := getDatabase(token)
+  
+  rows, err := db.Query(query)
+  if err != nil {
+    return nil, err
+  }
+
+  defer rows.Close()
+
+  return structureData(rows)
+}
+
+
+
+/**
+* Private
+*/
+
+func getDatabase(token string) *sql.DB {
+  var db *sql.DB
+  var ok bool
+  var err error
+
   tokenEntry, ok := TokenPool[token]
   if ok != true {
     IpLogger.Panic("Invalid token") 
@@ -80,15 +111,15 @@ func GetDatabase(token string) *sql.DB {
     IpLogger.Panic("Invalid database tag")
   }
 
-  db, ok := databaseConnections[tokenEntry.dbtag] 
+  db, ok = databaseConnections[tokenEntry.dbtag] 
   if ok != true {
-    dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%s"
+    dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%d sslmode=disable"
     dbConnStringVars := []interface{}{tokenEntry.user, tokenEntry.password, tokenEntry.dbname, databaseEntry.host, databaseEntry.port}
     dbConnString := fmt.Sprintf(dbConnStringFmt, dbConnStringVars...)
 
-    db, err := sql.Open(databaseEntry.driver, dbConnString)
+    db, err = sql.Open(databaseEntry.driver, dbConnString)
     if err != nil {
-      IpLogger.Fatal(err) 
+      IpLogger.Error(err) 
     }
 
     databaseConnections[tokenEntry.dbtag] = db
@@ -98,9 +129,67 @@ func GetDatabase(token string) *sql.DB {
 }
 
 
-func CloseDatabaseConnections() {
-  for k, v := range databaseConnections {
-    v.Close()  
-    delete(databaseConnections, k)
+func structureData(rows *sql.Rows) (map[string]interface{}, error) {
+  var structured = make(map[string]interface{})
+
+  colTypes, err := rows.ColumnTypes()
+  if err != nil {
+    return nil, err
   }
+
+  var colNames = make([]string, len(colTypes))
+  var fields = make(map[string]map[string]string)
+
+  for i, colType := range colTypes {
+    fields[colType.Name()] = map[string]string{ "type": colType.DatabaseTypeName() }
+    colNames[i] = colType.Name()
+  }
+  structured["fields"] = fields
+
+  rawData := make([][]byte, len(colTypes))
+  buf := make([]interface{}, len(colTypes))
+
+  for i, _ := range rawData {
+    buf[i]  = &rawData[i]
+  }
+
+  var structuredRows []map[string]interface{}
+  var rowNum int16 = 0
+
+  for rows.Next() {
+    err = rows.Scan(buf...)
+    if err != nil {
+      IpLogger.Error(err)
+    }
+
+    structuredRows = append(structuredRows, make(map[string]interface{}))
+
+    for i, raw := range rawData {
+      colName := colNames[i]
+
+      if raw == nil {
+        structuredRows[rowNum][colName] = nil
+      } else {
+        structuredRows[rowNum][colName] = string(raw)
+        /*
+        switch fields[colName]["type"] {
+        case "BOOL":
+          structuredRows[i][colName] = bool(raw)
+        case "INT4", "INT8", "INT16", "INT32", "INT64":
+          structuredRows[i][colName] = int(raw)
+        case "FLOAT4", "FLOAT8", "FLOAT16", "FLOAT32", "NUMERIC":
+          structuredRows[i][colName] = float32(raw)
+        default:
+          structuredRows[i][colName] = string(raw)
+        }
+        */
+      }
+    }
+
+    rowNum = rowNum + 1
+  }
+  structured["rows"] = structuredRows
+  structured["total_rows"] = rowNum
+
+  return structured, nil
 }

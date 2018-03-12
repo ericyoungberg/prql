@@ -170,19 +170,24 @@ func structureData(rows *sql.Rows) (map[string]interface{}, error) {
       if raw == nil {
         structuredRows[rowNum][colName] = nil
       } else {
-        structuredRows[rowNum][colName] = string(raw)
-        /*
+        temp := string(raw)
+        var err error
+
         switch fields[colName]["type"] {
         case "BOOL":
-          structuredRows[i][colName] = bool(raw)
+          structuredRows[rowNum][colName], err = strconv.ParseBool(temp)
         case "INT4", "INT8", "INT16", "INT32", "INT64":
-          structuredRows[i][colName] = int(raw)
+          structuredRows[rowNum][colName], err = strconv.Atoi(temp)
         case "FLOAT4", "FLOAT8", "FLOAT16", "FLOAT32", "NUMERIC":
-          structuredRows[i][colName] = float32(raw)
+          structuredRows[rowNum][colName], err = strconv.ParseFloat(temp, 64)
         default:
-          structuredRows[i][colName] = string(raw)
+          structuredRows[rowNum][colName] = temp
         }
-        */
+
+        if err != nil {
+          IpLogger.Error(err)
+          structuredRows[rowNum][colName] = temp
+        }
       }
     }
 

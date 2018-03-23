@@ -1,5 +1,4 @@
 #-- Define the world
-PROJDIR := $(shell pwd)
 BUILDDIR := build
 
 PRQL_BIN  = prql
@@ -11,22 +10,22 @@ RM = rm -rf
 
 
 #-- Build the world
-all: clean prqld prql staticcheck install
+all: clean build-prql build-prqld staticcheck install
 
 
 .PHONY: prql
-prql: test-prql build-prql
+prql: build-prql install
 
 .PHONY: prqld
-prqld: test-prqld build-prqld
+prqld: build-prqld install
 
 
-build-prql: $(PRQL_DIR)/*.go
+build-prql: $(PRQL_DIR)/*.go test-prql
 		@echo "+ $@"
 		@go build -o $(BUILDDIR)/$(PRQL_BIN) -v ./$(PRQL_DIR)
 
 
-build-prqld: $(PRQLD_DIR)/*.go
+build-prqld: $(PRQLD_DIR)/*.go test-prqld
 		@echo "+ $@"
 		@go build -o $(BUILDDIR)/$(PRQLD_BIN) -v ./$(PRQLD_DIR)
 
@@ -52,7 +51,7 @@ staticcheck:
 .PHONY: install
 install:
 		@echo "+ $@"
-		cp $(BUILDDIR)/* $(GOPATH)/bin
+		@cp $(BUILDDIR)/* $(GOPATH)/bin
 
 
 .PHONY: clean

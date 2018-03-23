@@ -2,10 +2,11 @@ package cmd
 
 import (
   "fmt"
+  "os"
 
-  //"github.com/prql/prql/util"
+  "github.com/prql/prql/util"
   "github.com/spf13/cobra"
-  //"github.com/olekukonko/tablewriter"
+  "github.com/olekukonko/tablewriter"
 )
 
 
@@ -31,7 +32,15 @@ var listTokensCmd = &cobra.Command{
   Use: "list",
   Short: "List all available tokens",
   Run: func(cmd *cobra.Command, args []string) {
-    //entries := util.ParseEntryFile("/var/lib/prql/tokens")
+    table := tablewriter.NewWriter(os.Stdout)
+    table.SetHeader([]string{"Token", "Username", "Server", "Database", "Domains", "Living"})
+
+    entries := util.ParseEntryFile("/var/lib/prql/tokens")
+    for _, entry := range entries {
+      table.Append(append(entry[:2], entry[3:]...))
+    }
+
+    table.Render()
   },
 }
 

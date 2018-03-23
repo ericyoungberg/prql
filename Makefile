@@ -1,5 +1,5 @@
 #-- Define the world
-BUILDDIR := build
+BUILDDIR = build
 
 PRQL_BIN  = prql
 PRQLD_BIN = prqld

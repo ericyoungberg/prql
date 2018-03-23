@@ -62,7 +62,7 @@ var listTokensCmd = &cobra.Command{
 
 
 var removeTokenCmd = &cobra.Command{
-  Use: "remove",
+  Use: "remove [tokens]",
   Short: "Remove token. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
     entries := util.ParseEntryFile("/var/lib/prql/tokens")

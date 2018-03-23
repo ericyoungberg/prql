@@ -12,7 +12,7 @@ import (
 
 
 type DatabaseEntry struct {
-  tag string
+  name string
   driver string
   host string
   port int
@@ -28,9 +28,9 @@ var (
 /**
 * Database File Entry Schema
 *
-* tag:driver:host:port:ssl
+* name:driver:host:port:ssl
 *
-* tag - A string used to identify the database server.
+* name - A string used to identify the database server.
 *
 * driver -  The type of database server. eg: postgres, mysql, ...
 * 
@@ -107,12 +107,12 @@ func getDatabase(token string) *sql.DB {
     IpLogger.Panic("Invalid token") 
   }
 
-  databaseEntry, ok := DatabasePool[tokenEntry.dbtag]
+  databaseEntry, ok := DatabasePool[tokenEntry.serverName]
   if ok != true {
-    IpLogger.Panic("Invalid database tag")
+    IpLogger.Panic("Invalid database server name")
   }
 
-  db, ok = databaseConnections[tokenEntry.dbtag] 
+  db, ok = databaseConnections[tokenEntry.serverName] 
   if ok != true {
     dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%d sslmode=disable"
     dbConnStringVars := []interface{}{tokenEntry.user, tokenEntry.password, tokenEntry.dbname, databaseEntry.host, databaseEntry.port}
@@ -123,7 +123,7 @@ func getDatabase(token string) *sql.DB {
       IpLogger.Error(err) 
     }
 
-    databaseConnections[tokenEntry.dbtag] = db
+    databaseConnections[tokenEntry.serverName] = db
   }
 
   return db

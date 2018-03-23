@@ -2,8 +2,11 @@ package cmd
 
 import (
   "fmt"
+  "os"
 
   "github.com/spf13/cobra"
+  "github.com/prql/prql/util"
+  "github.com/olekukonko/tablewriter"
 )
 
 
@@ -29,7 +32,12 @@ var listDatabasesCmd = &cobra.Command{
   Use: "list",
   Short: "List all available databases",
   Run: func(cmd *cobra.Command, args []string) {
-    fmt.Println(cmd.Short)
+    table := tablewriter.NewWriter(os.Stdout)
+    table.SetHeader([]string{"Name", "Driver", "Host", "Port", "SSL"})
+
+    entries := util.ParseEntryFile("/var/lib/prql/databases")
+    table.AppendBulk(entries)
+    table.Render()
   },
 }
 

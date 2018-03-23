@@ -33,7 +33,7 @@ var listTokensCmd = &cobra.Command{
   Short: "List all available tokens",
   Run: func(cmd *cobra.Command, args []string) {
     table := tablewriter.NewWriter(os.Stdout)
-    table.SetHeader([]string{"Token", "Username", "Server", "Database", "Domains", "Living"})
+    table.SetHeader([]string{"Token", "Username", "Server Name", "Database", "Domains", "Living"})
 
     entries := util.ParseEntryFile("/var/lib/prql/tokens")
     for _, entry := range entries {

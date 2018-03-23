@@ -1,4 +1,4 @@
-package main
+package prqld
 
 func main() {
   PopulateDatabasePool()

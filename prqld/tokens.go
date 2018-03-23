@@ -1,9 +1,10 @@
-package main
+package prqld
 
 import (
   "strings"
   "strconv"
 
+  "github.com/prql/prql/util"
   log "github.com/sirupsen/logrus"
 )
 

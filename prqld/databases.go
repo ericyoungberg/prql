@@ -1,4 +1,4 @@
-package main
+package prqld
 
 import (
   "fmt"
@@ -6,6 +6,7 @@ import (
   "database/sql"
 
   _ "github.com/lib/pq"
+  "github.com/prql/prql/util"
   log "github.com/sirupsen/logrus"
 )
 

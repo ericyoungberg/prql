@@ -2,11 +2,10 @@ package cmd
 
 import (
   "fmt"
-  "io/ioutil"
 
-  "github.com/prql/prqld"
+  //"github.com/prql/prql/util"
   "github.com/spf13/cobra"
-  "github.com/olekukonko/tablewriter"
+  //"github.com/olekukonko/tablewriter"
 )
 
 
@@ -32,7 +31,7 @@ var listTokensCmd = &cobra.Command{
   Use: "list",
   Short: "List all available tokens",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := prqld.ParseEntryFile('/var/lib/prql/tokens')
+    //entries := util.ParseEntryFile("/var/lib/prql/tokens")
   },
 }
 

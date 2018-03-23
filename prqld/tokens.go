@@ -1,4 +1,4 @@
-package prqld
+package main
 
 import (
   "strings"
@@ -48,7 +48,7 @@ var (
 */
 
 func PopulateTokenPool() {
-  entries := ParseEntryFile("/var/lib/prql/tokens")
+  entries := util.ParseEntryFile("/var/lib/prql/tokens")
 
   for i, parts := range entries {
     if len(parts) != 7 {

@@ -1,4 +1,4 @@
-package prqld
+package main
 
 import (
   "fmt"
@@ -42,7 +42,7 @@ var (
 */
 
 func PopulateDatabasePool() {
-  entries := ParseEntryFile("/var/lib/prql/databases")
+  entries := util.ParseEntryFile("/var/lib/prql/databases")
 
   for i, parts := range entries {
     if len(parts) != 5 {

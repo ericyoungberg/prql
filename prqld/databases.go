@@ -12,11 +12,13 @@ import (
 
 
 type DatabaseEntry struct {
-  name string
-  driver string
-  host string
-  port int
   ssl bool
+
+  port int
+
+  hostName string
+  driver   string
+  host     string
 }
 
 var (
@@ -107,12 +109,12 @@ func getDatabase(token string) *sql.DB {
     IpLogger.Panic("Invalid token") 
   }
 
-  databaseEntry, ok := DatabasePool[tokenEntry.serverName]
+  databaseEntry, ok := DatabasePool[tokenEntry.hostName]
   if ok != true {
     IpLogger.Panic("Invalid database server name")
   }
 
-  db, ok = databaseConnections[tokenEntry.serverName] 
+  db, ok = databaseConnections[tokenEntry.hostName] 
   if ok != true {
     dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%d sslmode=disable"
     dbConnStringVars := []interface{}{tokenEntry.user, tokenEntry.password, tokenEntry.dbname, databaseEntry.host, databaseEntry.port}
@@ -123,7 +125,7 @@ func getDatabase(token string) *sql.DB {
       IpLogger.Error(err) 
     }
 
-    databaseConnections[tokenEntry.serverName] = db
+    databaseConnections[tokenEntry.hostName] = db
   }
 
   return db

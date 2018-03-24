@@ -33,7 +33,7 @@ var listDatabasesCmd = &cobra.Command{
   Short: "List all available databases",
   Run: func(cmd *cobra.Command, args []string) {
     table := tablewriter.NewWriter(os.Stdout)
-    table.SetHeader([]string{"Name", "Driver", "Host", "Port", "SSL"})
+    table.SetHeader([]string{"Host Name", "Driver", "Host", "Port", "SSL"})
 
     entries := util.ParseEntryFile("/var/lib/prql/databases")
     table.AppendBulk(entries)

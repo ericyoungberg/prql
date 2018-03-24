@@ -27,3 +27,16 @@ func ParseEntryFile(filePath string) [][]string {
 
   return splitEntries
 }
+
+
+func WriteEntryFile(filePath string, entries [][]string) error {
+  lines := make([]string, len(entries))
+
+  for i, entry := range entries {
+    lines[i] = strings.Join(entry, ":")
+  } 
+
+  data := []byte(strings.Join(lines, "\n"))
+
+  return ioutil.WriteFile(filePath, data, 0600)
+}

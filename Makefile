@@ -22,12 +22,12 @@ prqld: build-prqld install
 
 build-prql: $(PRQL_DIR)/*.go test-prql
 		@echo "+ $@"
-		@go build -o $(BUILDDIR)/$(PRQL_BIN) -v ./$(PRQL_DIR)
+		@go build -o $(BUILDDIR)/$(PRQL_BIN) ./$(PRQL_DIR)
 
 
 build-prqld: $(PRQLD_DIR)/*.go test-prqld
 		@echo "+ $@"
-		@go build -o $(BUILDDIR)/$(PRQLD_BIN) -v ./$(PRQLD_DIR)
+		@go build -o $(BUILDDIR)/$(PRQLD_BIN) ./$(PRQLD_DIR)
 
 
 .PHONY: test-prql

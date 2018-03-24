@@ -7,11 +7,20 @@ import (
 
   "github.com/spf13/cobra"
   "github.com/prql/prql/util"
+  log "github.com/sirupsen/logrus"
   "github.com/olekukonko/tablewriter"
 )
 
+type Params struct{
+  quiet bool
+}
+
+const (
+  tokenFile string = "/var/lib/prql/tokens"
+)
+
 var (
-  quietMode bool
+  params Params
 )
 
 
@@ -37,9 +46,9 @@ var listTokensCmd = &cobra.Command{
   Use: "list",
   Short: "List all available tokens",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := util.ParseEntryFile("/var/lib/prql/tokens")
+    entries := util.ParseEntryFile(tokenFile)
 
-    if quietMode {
+    if params.quiet {
       tokens := make([]string, len(entries))
 
       for i, entry := range entries {
@@ -65,7 +74,7 @@ var removeTokenCmd = &cobra.Command{
   Use: "remove [tokens]",
   Short: "Remove token. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := util.ParseEntryFile("/var/lib/prql/tokens")
+    entries := util.ParseEntryFile(tokenFile)
 
     for _, token := range args {
       for i, entry := range entries {
@@ -78,18 +87,16 @@ var removeTokenCmd = &cobra.Command{
       }
     }
 
-    /*
-    err := util.WriteEntryFile(entries)
+    err := util.WriteEntryFile(tokenFile, entries)
     if err != nil {
-    
+      log.Error("Could not write changes to tokens file")
     }
-    */
   },
 }
 
 
 func init() {
-  listTokensCmd.Flags().BoolVarP(&quietMode, "quiet", "q", false, "Only display tokens")
+  listTokensCmd.Flags().BoolVarP(&params.quiet, "quiet", "q", false, "Only display tokens")
 
   tokensCmd.AddCommand(newTokenCmd)
   tokensCmd.AddCommand(listTokensCmd)

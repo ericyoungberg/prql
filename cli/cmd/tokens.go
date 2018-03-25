@@ -134,7 +134,7 @@ func init() {
   newTokenCmd.Flags().StringVarP(&params.username, "user", "u", "", "Database user associated with the new token")
   newTokenCmd.Flags().StringVarP(&params.host, "host", "H", "", "Database host associated with the new token. Must be a valid database host name defined using the databases command.")
   newTokenCmd.Flags().StringVarP(&params.database, "database", "d", "", "Database associated with the new token.")
-  newTokenCmd.Flags().StringVarP(&params.origins, "origins", "", "", "Comma-delimited list of origins that are allowed to use the token.")
+  newTokenCmd.Flags().StringVarP(&params.origins, "origins", "o", "", "Comma-delimited list of origins that are allowed to use the token.")
   newTokenCmd.Flags().BoolVarP(&params.living, "living", "l", false, "Keep connection alive, regardless of token usage frequency.")
 
   listTokensCmd.Flags().BoolVarP(&params.quiet, "quiet", "q", false, "Only display tokens")

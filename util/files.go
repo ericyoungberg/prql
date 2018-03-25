@@ -8,6 +8,7 @@ import (
   log "github.com/sirupsen/logrus"
 )
 
+
 const (
   ENTRY_DELIMITER string = ":"
 )
@@ -55,7 +56,7 @@ func AppendEntry(filePath string, entry []string) error {
   
   defer fd.Close()
 
-  _, err = fd.WriteString(strings.Join(entry, ENTRY_DELIMITER))
+  _, err = fd.WriteString(strings.Join(entry, ENTRY_DELIMITER) + "\n")
 
   return err
 }

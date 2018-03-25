@@ -56,15 +56,22 @@ var newTokenCmd = &cobra.Command{
 
     timeSeed := strconv.Itoa(int(time.Now().Unix()))
     token    := util.CreateHash(strings.Join([]string{params.username, params.host, params.database, timeSeed}, ""))  
-    password := util.GetPassword()
+    password, err := util.GetPassword(params.username)
+    if err != nil {
+      log.Fatal(err) 
+      return
+    }
 
     entry := []string{token, params.username, password, params.host, params.database, params.origins, strconv.FormatBool(params.living)}
 
-    err := util.AppendEntry(tokenFile, entry)
+    err = util.AppendEntry(tokenFile, entry)
     if err != nil {
       log.Fatal("Could not generate new token.") 
       log.Fatal(err) 
+      return
     }
+
+    fmt.Printf("Generated Token %s\n", token)
   },
 }
 

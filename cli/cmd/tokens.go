@@ -14,7 +14,7 @@ import (
 )
 
 
-type Params struct{
+type TokenParams struct{
   quiet  bool
   living bool
 
@@ -29,7 +29,7 @@ const (
 )
 
 var (
-  params Params
+  tokenParams TokenParams
 )
 
 
@@ -46,23 +46,23 @@ var newTokenCmd = &cobra.Command{
   Use: "new",
   Short: "Generate a new PrQL token for the given credentials",
   Run: func(cmd *cobra.Command, args []string) {
-    if params.username == "" {
+    if tokenParams.username == "" {
       log.Fatal("Missing username [-u]")
-    } else if params.host == "" {
+    } else if tokenParams.host == "" {
       log.Fatal("Missing host [-H]")
-    } else if params.database == "" {
+    } else if tokenParams.database == "" {
       log.Fatal("Missing database [-d]")
     }
 
     timeSeed := strconv.Itoa(int(time.Now().Unix()))
-    token    := util.CreateHash(strings.Join([]string{params.username, params.host, params.database, timeSeed}, ""))  
-    password, err := util.GetPassword(params.username)
+    token    := util.CreateHash(strings.Join([]string{tokenParams.username, tokenParams.host, tokenParams.database, timeSeed}, ""))  
+    password, err := util.GetPassword(tokenParams.username)
     if err != nil {
       log.Fatal(err) 
       return
     }
 
-    entry := []string{token, params.username, password, params.host, params.database, params.origins, strconv.FormatBool(params.living)}
+    entry := []string{token, tokenParams.username, password, tokenParams.host, tokenParams.database, tokenParams.origins, strconv.FormatBool(tokenParams.living)}
 
     err = util.AppendEntry(tokenFile, entry)
     if err != nil {
@@ -82,7 +82,7 @@ var listTokensCmd = &cobra.Command{
   Run: func(cmd *cobra.Command, args []string) {
     entries := util.ParseEntryFile(tokenFile)
 
-    if params.quiet {
+    if tokenParams.quiet {
       tokens := make([]string, len(entries))
 
       for i, entry := range entries {
@@ -109,17 +109,7 @@ var removeTokenCmd = &cobra.Command{
   Short: "Remove token. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
     entries := util.ParseEntryFile(tokenFile)
-
-    for _, token := range args {
-      for i, entry := range entries {
-        if entry[0] == token {
-          entries = append(entries[:i], entries[i+1:]...)
-
-          fmt.Printf("Deleting %s\n", token) 
-          break
-        }
-      }
-    }
+    entries = util.RemoveByColumn(args, entries, 0)
 
     err := util.WriteEntryFile(tokenFile, entries)
     if err != nil {
@@ -131,13 +121,13 @@ var removeTokenCmd = &cobra.Command{
 
 
 func init() {
-  newTokenCmd.Flags().StringVarP(&params.username, "user", "u", "", "Database user associated with the new token")
-  newTokenCmd.Flags().StringVarP(&params.host, "host", "H", "", "Database host associated with the new token. Must be a valid database host name defined using the databases command.")
-  newTokenCmd.Flags().StringVarP(&params.database, "database", "d", "", "Database associated with the new token.")
-  newTokenCmd.Flags().StringVarP(&params.origins, "origins", "o", "", "Comma-delimited list of origins that are allowed to use the token.")
-  newTokenCmd.Flags().BoolVarP(&params.living, "living", "l", false, "Keep connection alive, regardless of token usage frequency.")
+  newTokenCmd.Flags().StringVarP(&tokenParams.username, "user", "u", "", "Database user associated with the new token")
+  newTokenCmd.Flags().StringVarP(&tokenParams.host, "host", "H", "", "Database host associated with the new token. Must be a valid database host name defined using the databases command.")
+  newTokenCmd.Flags().StringVarP(&tokenParams.database, "database", "d", "", "Database associated with the new token.")
+  newTokenCmd.Flags().StringVarP(&tokenParams.origins, "origins", "o", "", "Comma-delimited list of origins that are allowed to use the token.")
+  newTokenCmd.Flags().BoolVarP(&tokenParams.living, "living", "l", false, "Keep connection alive, regardless of token usage frequency.")
 
-  listTokensCmd.Flags().BoolVarP(&params.quiet, "quiet", "q", false, "Only display tokens")
+  listTokensCmd.Flags().BoolVarP(&tokenParams.quiet, "quiet", "q", false, "Only display tokens")
 
   tokensCmd.AddCommand(newTokenCmd)
   tokensCmd.AddCommand(listTokensCmd)

@@ -6,6 +6,9 @@ import (
 
   "github.com/spf13/cobra"
 )
+
+
+var params interface{}
   
 
 var rootCmd = &cobra.Command{

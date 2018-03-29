@@ -72,6 +72,8 @@ var newTokenCmd = &cobra.Command{
     }
 
     fmt.Printf("Generated Token %s\n", token)
+
+    
   },
 }
 

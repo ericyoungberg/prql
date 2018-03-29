@@ -43,7 +43,11 @@ var (
 * ssl - A boolean that indicates whether we should verify ssl or not.
 */
 
-func PopulateDatabasePool() {
+func PopulateDatabasePool(refresh bool) {
+  if refresh {
+    DatabasePool = make(map[string]DatabaseEntry) 
+  }
+
   entries := util.ParseEntryFile("/var/lib/prql/databases")
 
   for i, parts := range entries {

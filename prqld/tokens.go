@@ -49,7 +49,11 @@ var (
 *          to the specified database whenever the system starts up.
 */
 
-func PopulateTokenPool() {
+func PopulateTokenPool(refresh bool) {
+  if refresh {
+    TokenPool = make(map[string]TokenEntry) 
+  }
+
   entries := util.ParseEntryFile("/var/lib/prql/tokens")
 
   for i, parts := range entries {

@@ -30,6 +30,8 @@ func StartServer(config *Config) {
   host = fmt.Sprintf("127.0.0.1%s", port)
 
   mux.HandleFunc("/", handler)
+  mux.HandleFunc('/refresh-tokens', refreshTokens)
+  mux.HandleFunc('/refresh-databases', refreshDatabases)
   mux.HandleFunc("/check", func(w http.ResponseWriter, req *http.Request) { 
     w.WriteHeader(http.StatusOK)
   })
@@ -40,10 +42,6 @@ func StartServer(config *Config) {
   http.ListenAndServe(port, mux)
 }
 
-
-/**
-* Private
-*/
 
 type postRequestBody struct {
   Query string
@@ -78,6 +76,14 @@ func checkServerStatus() {
   } else {
     log.Panic(fmt.Sprintf("Cannot connect to server at %s.\nExiting...", host)) 
   }
+}
+
+func refreshTokens(w http.ResponseWriter, r *http.Request) {
+  PopulateTokenPool(true)
+}
+
+func refreshDatabases(w http.ResponseWriter, r *http.Request) {
+  PopulateDatabasePool(true)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {

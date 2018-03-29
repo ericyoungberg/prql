@@ -4,6 +4,7 @@ import (
   "os"
   "fmt"
   "strings"
+  "strconv"
 
   "github.com/spf13/cobra"
   "github.com/prql/prql/util"
@@ -44,7 +45,23 @@ var newDatabaseCmd = &cobra.Command{
   Use: "new",
   Short: "Add a database to be referenced by the system",
   Run: func(cmd *cobra.Command, args []string) {
-    fmt.Println(cmd.Short)
+    if databaseParams.hostName == "" {
+      log.Fatal("Missing host name [-n]")
+    } else if databaseParams.driver == "" {
+      log.Fatal("Missing driver [-d]")
+    } else if databaseParams.port == 0 {
+      log.Fatal("Missing port [-p]")
+    }
+
+    entry := []string{databaseParams.hostName, databaseParams.driver, databaseParams.host, strconv.Itoa(databaseParams.port), strconv.FormatBool(databaseParams.ssl)}
+
+    err := util.AppendEntry(databaseFile, entry)
+    if err != nil {
+      log.Error("Could not add database") 
+      log.Fatal(err) 
+    }
+
+    fmt.Printf("Added database %s\n", databaseParams.hostName)
   },
 }
 
@@ -93,7 +110,7 @@ var removeDatabaseCmd = &cobra.Command{
 func init() {
   newDatabaseCmd.Flags().StringVarP(&databaseParams.hostName, "name", "n", "", "Host name used to reference this server from the tokens")
   newDatabaseCmd.Flags().StringVarP(&databaseParams.driver, "driver", "d", "", "Database type (postgresql, mysql)")
-  newDatabaseCmd.Flags().StringVarP(&databaseParams.host, "host", "H", "", "Location of the database server")
+  newDatabaseCmd.Flags().StringVarP(&databaseParams.host, "host", "H", "0.0.0.0", "Location of the database server")
   newDatabaseCmd.Flags().IntVarP(&databaseParams.port, "port", "p", 0, "Port of the database server")
 
   listDatabasesCmd.Flags().BoolVarP(&databaseParams.quiet, "quiet", "q", false, "Only display host names")

@@ -91,7 +91,15 @@ func refreshTokens(w http.ResponseWriter, r *http.Request) {
 }
 
 func refreshDatabases(w http.ResponseWriter, r *http.Request) {
-  //PopulateDatabasePool(true)
+  clientSecret := "secrettoken" //r.Header.Get(secretHeader)
+  serverSecret := "secrettoken"
+
+  if clientSecret == serverSecret {
+    PopulateDatabasePool(true)
+  } else {
+    fail(w, "This endpoint is restricted to a local prql client")
+  }
+
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {

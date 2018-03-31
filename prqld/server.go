@@ -13,6 +13,7 @@ import (
 
 const (
   HeaderName string = "X-PrQL-Token"
+  secretHeader string = "X-PrQL-Secret"
 )
 
 type Config struct {
@@ -30,8 +31,8 @@ func StartServer(config *Config) {
   host = fmt.Sprintf("127.0.0.1%s", port)
 
   mux.HandleFunc("/", handler)
-  mux.HandleFunc('/refresh-tokens', refreshTokens)
-  mux.HandleFunc('/refresh-databases', refreshDatabases)
+  mux.HandleFunc("/refresh-tokens", refreshTokens)
+  mux.HandleFunc("/refresh-databases", refreshDatabases)
   mux.HandleFunc("/check", func(w http.ResponseWriter, req *http.Request) { 
     w.WriteHeader(http.StatusOK)
   })
@@ -52,9 +53,9 @@ func checkServerStatus() {
 
   for i := 0; i < 10; i += 1 {
     time.Sleep(time.Second) 
+
     endpoint := url.URL{Scheme: "http", Host: host, Path: "check"}
     res, err := http.Get(endpoint.String())
-
     if err != nil {
       fmt.Println("error: ", err)
       continue
@@ -79,11 +80,18 @@ func checkServerStatus() {
 }
 
 func refreshTokens(w http.ResponseWriter, r *http.Request) {
-  PopulateTokenPool(true)
+  clientSecret := "secrettoken" //r.Header.Get(secretHeader)
+  serverSecret := "secrettoken"
+
+  if clientSecret == serverSecret {
+    PopulateTokenPool(true)
+  } else {
+    fail(w, "This endpoint is restricted to a local prql client")
+  }
 }
 
 func refreshDatabases(w http.ResponseWriter, r *http.Request) {
-  PopulateDatabasePool(true)
+  //PopulateDatabasePool(true)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {

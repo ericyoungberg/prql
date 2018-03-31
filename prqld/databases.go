@@ -46,6 +46,7 @@ var (
 func PopulateDatabasePool(refresh bool) {
   if refresh {
     DatabasePool = make(map[string]DatabaseEntry) 
+    log.Info("Refreshing database pool")
   }
 
   entries := util.ParseEntryFile("/var/lib/prql/databases")

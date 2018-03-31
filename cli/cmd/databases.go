@@ -62,6 +62,8 @@ var newDatabaseCmd = &cobra.Command{
     }
 
     fmt.Printf("Added database %s\n", databaseParams.hostName)
+
+    refreshServerPool("databases")
   },
 }
 
@@ -95,14 +97,17 @@ var removeDatabaseCmd = &cobra.Command{
   Use: "remove [names]",
   Short: "Remove database location from system. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := util.ParseEntryFile(tokenFile)
+    entries := util.ParseEntryFile(databaseFile)
     entries = util.RemoveByColumn(args, entries, 0)
 
-    err := util.WriteEntryFile(tokenFile, entries)
+    err := util.WriteEntryFile(databaseFile, entries)
     if err != nil {
       log.Error("Could not write changes to tokens file")
       log.Error(err)
+      return
     }
+
+    refreshServerPool("databases")
   },
 }
 

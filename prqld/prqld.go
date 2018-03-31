@@ -1,8 +1,8 @@
 package main
 
 func main() {
-  PopulateDatabasePool()
-  PopulateTokenPool()
+  PopulateDatabasePool(false)
+  PopulateTokenPool(false)
 
   defer CloseDatabaseConnections()
 

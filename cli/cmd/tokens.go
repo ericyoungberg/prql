@@ -73,7 +73,7 @@ var newTokenCmd = &cobra.Command{
 
     fmt.Printf("Generated Token %s\n", token)
 
-    
+    refreshServerPool("tokens")
   },
 }
 
@@ -118,6 +118,8 @@ var removeTokenCmd = &cobra.Command{
       log.Error("Could not write changes to tokens file")
       log.Error(err)
     }
+
+    refreshServerPool("tokens")
   },
 }
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+  "fmt"
   "strings"
   "strconv"
 
@@ -52,6 +53,7 @@ var (
 func PopulateTokenPool(refresh bool) {
   if refresh {
     TokenPool = make(map[string]TokenEntry) 
+    log.Info("Refreshing token pool")
   }
 
   entries := util.ParseEntryFile("/var/lib/prql/tokens")

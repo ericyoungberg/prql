@@ -92,7 +92,7 @@ func refreshTokens(w http.ResponseWriter, r *http.Request) {
 
 func refreshDatabases(w http.ResponseWriter, r *http.Request) {
   clientSecret := r.Header.Get(secretHeader)
-  serverSecret := "secrettoken"
+  servrSecret := "secrettoken"
 
   if clientSecret == serverSecret {
     PopulateDatabasePool(true)

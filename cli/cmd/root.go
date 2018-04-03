@@ -11,9 +11,6 @@ import (
 )
 
 
-var params interface{}
-  
-
 var rootCmd = &cobra.Command{
   Use: "prql ",
   Short: "PrQL is a service for executing SQL queries over HTTP",
@@ -31,6 +28,7 @@ func Execute() {
   }
 }
 
+
 func refreshServerPool(poolName string) {
   endpoint := url.URL{Scheme: "http", Host: "127.0.0.1:1999", Path: "refresh-" + poolName}
 
@@ -42,12 +40,10 @@ func refreshServerPool(poolName string) {
   r.Header.Set("X-PrQL-Secret", "secrettoken")
 
   client := &http.Client{}
-
   res, err := client.Do(r)
   if err != nil {
     log.Fatal(err) 
   }
-
   res.Body.Close();
 
   if res.StatusCode != http.StatusOK {

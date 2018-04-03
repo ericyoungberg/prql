@@ -80,7 +80,7 @@ func checkServerStatus() {
 }
 
 func refreshTokens(w http.ResponseWriter, r *http.Request) {
-  clientSecret := "secrettoken" //r.Header.Get(secretHeader)
+  clientSecret := r.Header.Get(secretHeader)
   serverSecret := "secrettoken"
 
   if clientSecret == serverSecret {
@@ -91,7 +91,7 @@ func refreshTokens(w http.ResponseWriter, r *http.Request) {
 }
 
 func refreshDatabases(w http.ResponseWriter, r *http.Request) {
-  clientSecret := "secrettoken" //r.Header.Get(secretHeader)
+  clientSecret := r.Header.Get(secretHeader)
   serverSecret := "secrettoken"
 
   if clientSecret == serverSecret {

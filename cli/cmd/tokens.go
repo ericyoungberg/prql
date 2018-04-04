@@ -46,6 +46,11 @@ var newTokenCmd = &cobra.Command{
   Use: "new",
   Short: "Generate a new PrQL token for the given credentials",
   Run: func(cmd *cobra.Command, args []string) {
+    _, err := lib.GetConfig()
+    if err != nil {
+      log.Fatal("Could not load configuration", err) 
+    }
+
     if tokenParams.username == "" {
       log.Fatal("Missing username [-u]")
     } else if tokenParams.host == "" {
@@ -83,6 +88,14 @@ var listTokensCmd = &cobra.Command{
   Short: "List all available tokens",
   Run: func(cmd *cobra.Command, args []string) {
     entries := lib.ParseEntryFile(tokenFile)
+
+    config, err := lib.GetConfig()
+    if err != nil {
+      log.Fatal("Could not load configuration", err) 
+    }
+
+    fmt.Printf("%+v\n", config)
+
 
     if tokenParams.quiet {
       tokens := make([]string, len(entries))

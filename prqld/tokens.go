@@ -55,7 +55,7 @@ func PopulateTokenPool(refresh bool) {
     log.Info("Refreshing token pool")
   }
 
-  entries := lib.ParseEntryFile("/var/lib/prql/tokens")
+  entries := lib.ParseEntryFile(lib.Sys.TokenFile)
 
   for i, parts := range entries {
     if len(parts) != 7 {

@@ -77,8 +77,13 @@ func checkServerStatus() {
 }
 
 func refreshTokens(w http.ResponseWriter, r *http.Request) {
-  clientSecret := r.Header.Get(secretHeader)
-  serverSecret := "secrettoken"
+  config, err := lib.GetConfig()
+  if err != nil {
+    log.Fatal(err) 
+  }
+
+  clientSecret := r.Header.Get(config.Headers.Secret)
+  serverSecret := config.Secret
 
   if clientSecret == serverSecret {
     PopulateTokenPool(true)
@@ -88,8 +93,13 @@ func refreshTokens(w http.ResponseWriter, r *http.Request) {
 }
 
 func refreshDatabases(w http.ResponseWriter, r *http.Request) {
-  clientSecret := r.Header.Get(secretHeader)
-  serverSecret := "secrettoken"
+  config, err := lib.GetConfig()
+  if err != nil {
+    log.Fatal(err) 
+  }
+
+  clientSecret := r.Header.Get(config.Headers.Secret)
+  serverSecret := config.Secret
 
   if clientSecret == serverSecret {
     PopulateDatabasePool(true)
@@ -100,11 +110,16 @@ func refreshDatabases(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
+  config, err := lib.GetConfig()
+  if err != nil {
+    log.Fatal(err) 
+  }
+
   IpLogger = log.WithFields(log.Fields{"IP": r.RemoteAddr})
 
   var token string
 
-  token = r.Header.Get(HeaderName)
+  token = r.Header.Get(config.Headers.Token)
   if token == "" {
     tokenParam := r.URL.Query()["token"]
 

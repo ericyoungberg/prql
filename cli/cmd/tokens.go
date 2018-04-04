@@ -24,10 +24,6 @@ type TokenParams struct{
   origins  string
 }
 
-const (
-  tokenFile string = "/var/lib/prql/tokens"
-)
-
 var (
   tokenParams TokenParams
 )
@@ -46,11 +42,6 @@ var newTokenCmd = &cobra.Command{
   Use: "new",
   Short: "Generate a new PrQL token for the given credentials",
   Run: func(cmd *cobra.Command, args []string) {
-    _, err := lib.GetConfig()
-    if err != nil {
-      log.Fatal("Could not load configuration", err) 
-    }
-
     if tokenParams.username == "" {
       log.Fatal("Missing username [-u]")
     } else if tokenParams.host == "" {
@@ -69,7 +60,7 @@ var newTokenCmd = &cobra.Command{
 
     entry := []string{token, tokenParams.username, password, tokenParams.host, tokenParams.database, tokenParams.origins, strconv.FormatBool(tokenParams.living)}
 
-    err = lib.AppendEntry(tokenFile, entry)
+    err = lib.AppendEntry(lib.Sys.TokenFile, entry)
     if err != nil {
       log.Fatal("Could not generate new token.") 
       log.Fatal(err) 
@@ -87,15 +78,7 @@ var listTokensCmd = &cobra.Command{
   Use: "list",
   Short: "List all available tokens",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := lib.ParseEntryFile(tokenFile)
-
-    config, err := lib.GetConfig()
-    if err != nil {
-      log.Fatal("Could not load configuration", err) 
-    }
-
-    fmt.Printf("%+v\n", config)
-
+    entries := lib.ParseEntryFile(lib.Sys.TokenFile)
 
     if tokenParams.quiet {
       tokens := make([]string, len(entries))
@@ -123,10 +106,10 @@ var removeTokenCmd = &cobra.Command{
   Use: "remove [tokens]",
   Short: "Remove token. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := lib.ParseEntryFile(tokenFile)
+    entries := lib.ParseEntryFile(lib.Sys.TokenFile)
     entries = lib.RemoveByColumn(args, entries, 0)
 
-    err := lib.WriteEntryFile(tokenFile, entries)
+    err := lib.WriteEntryFile(lib.Sys.TokenFile, entries)
     if err != nil {
       log.Error("Could not write changes to tokens file")
       log.Error(err)

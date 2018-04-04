@@ -3,10 +3,12 @@ package cmd
 import (
   "os"
   "fmt"
+  "strconv"
   "net/url"
   "net/http"
 
   "github.com/spf13/cobra"
+  "github.com/prql/prql/lib"
   log "github.com/sirupsen/logrus"
 )
 
@@ -30,14 +32,23 @@ func Execute() {
 
 
 func refreshServerPool(poolName string) {
-  endpoint := url.URL{Scheme: "http", Host: "127.0.0.1:1999", Path: "refresh-" + poolName}
+  config, err := lib.GetConfig()
+  if err != nil {
+    log.Fatal(err) 
+  }
+
+  endpoint := url.URL{
+    Scheme: "http", 
+    Host: ("127.0.0.1:" + strconv.Itoa(config.Port)), 
+    Path: ("refresh-" + poolName),
+  }
 
   req, err := http.NewRequest("GET", endpoint.String(), nil)
   if err != nil {
     log.Fatal(err)
   }
 
-  req.Header.Set("X-PrQL-Secret", "secrettoken")
+  req.Header.Set(config.Headers.Secret, config.Secret)
 
   client := &http.Client{}
   res, err := client.Do(req)

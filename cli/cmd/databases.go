@@ -23,10 +23,6 @@ type DatabaseParams struct{
   port int
 }
 
-const (
-  databaseFile string = "/var/lib/prql/databases"
-)
-
 var (
   databaseParams DatabaseParams
 )
@@ -55,7 +51,7 @@ var newDatabaseCmd = &cobra.Command{
 
     entry := []string{databaseParams.hostName, databaseParams.driver, databaseParams.host, strconv.Itoa(databaseParams.port), strconv.FormatBool(databaseParams.ssl)}
 
-    err := lib.AppendEntry(databaseFile, entry)
+    err := lib.AppendEntry(lib.Sys.DatabaseFile, entry)
     if err != nil {
       log.Error("Could not add database") 
       log.Fatal(err) 
@@ -72,7 +68,7 @@ var listDatabasesCmd = &cobra.Command{
   Use: "list",
   Short: "List all available databases",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := lib.ParseEntryFile(databaseFile)
+    entries := lib.ParseEntryFile(lib.Sys.DatabaseFile)
 
     if databaseParams.quiet {
       names := make([]string, len(entries)) 
@@ -97,10 +93,10 @@ var removeDatabaseCmd = &cobra.Command{
   Use: "remove [names]",
   Short: "Remove database location from system. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := lib.ParseEntryFile(databaseFile)
+    entries := lib.ParseEntryFile(lib.Sys.DatabaseFile)
     entries = lib.RemoveByColumn(args, entries, 0)
 
-    err := lib.WriteEntryFile(databaseFile, entries)
+    err := lib.WriteEntryFile(lib.Sys.DatabaseFile, entries)
     if err != nil {
       log.Error("Could not write changes to tokens file")
       log.Error(err)

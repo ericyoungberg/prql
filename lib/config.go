@@ -1,27 +1,29 @@
 package lib
 
 import (
-  "path"
-
   "github.com/BurntSushi/toml"
 )
 
-
-type Config struct {
-  Port int16 
+type headers struct {
+  Token  string 
   Secret string
 }
 
+type Config struct {
+  Port    int
+  Secret  string
 
-var config Config
+  Headers headers
+}
 
+var (
+  config Config
+)
 
 func loadConfig() (Config, error) {
   var loadedConfig Config
 
-  tomlPath := path.Join(Sys.FilesPath, Sys.ConfigFile)
-
-  if _, err := toml.DecodeFile(tomlPath, &loadedConfig); err != nil {
+  if _, err := toml.DecodeFile(Sys.ConfigFile, &loadedConfig); err != nil {
     return loadedConfig, err 
   }
 

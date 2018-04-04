@@ -49,7 +49,7 @@ func PopulateDatabasePool(refresh bool) {
     log.Info("Refreshing database pool")
   }
 
-  entries := lib.ParseEntryFile("/var/lib/prql/databases")
+  entries := lib.ParseEntryFile(lib.Sys.DatabaseFile)
 
   for i, parts := range entries {
     if len(parts) != 5 {

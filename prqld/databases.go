@@ -6,7 +6,7 @@ import (
   "database/sql"
 
   _ "github.com/lib/pq"
-  "github.com/prql/prql/util"
+  "github.com/prql/prql/lib"
   log "github.com/sirupsen/logrus"
 )
 
@@ -49,7 +49,7 @@ func PopulateDatabasePool(refresh bool) {
     log.Info("Refreshing database pool")
   }
 
-  entries := util.ParseEntryFile("/var/lib/prql/databases")
+  entries := lib.ParseEntryFile("/var/lib/prql/databases")
 
   for i, parts := range entries {
     if len(parts) != 5 {

@@ -32,15 +32,15 @@ func Execute() {
 func refreshServerPool(poolName string) {
   endpoint := url.URL{Scheme: "http", Host: "127.0.0.1:1999", Path: "refresh-" + poolName}
 
-  r, err := http.NewRequest("GET", endpoint.String(), nil)
+  req, err := http.NewRequest("GET", endpoint.String(), nil)
   if err != nil {
     log.Fatal(err)
   }
 
-  r.Header.Set("X-PrQL-Secret", "secrettoken")
+  req.Header.Set("X-PrQL-Secret", "secrettoken")
 
   client := &http.Client{}
-  res, err := client.Do(r)
+  res, err := client.Do(req)
   if err != nil {
     log.Fatal(err) 
   }

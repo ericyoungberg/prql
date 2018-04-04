@@ -8,6 +8,7 @@ import (
   "io/ioutil"
   "encoding/json"
 
+  "github.com/prql/prql/lib"
   log "github.com/sirupsen/logrus"
 )
 
@@ -16,16 +17,12 @@ const (
   secretHeader string = "X-PrQL-Secret"
 )
 
-type Config struct {
-  Port int16
-}
-
 var (
   IpLogger log.FieldLogger
   host string
 )
 
-func StartServer(config *Config) {
+func StartServer(config *lib.Config) {
   mux := http.NewServeMux()
   port := fmt.Sprintf(":%d", config.Port)
   host = fmt.Sprintf("127.0.0.1%s", port)
@@ -92,7 +89,7 @@ func refreshTokens(w http.ResponseWriter, r *http.Request) {
 
 func refreshDatabases(w http.ResponseWriter, r *http.Request) {
   clientSecret := r.Header.Get(secretHeader)
-  servrSecret := "secrettoken"
+  serverSecret := "secrettoken"
 
   if clientSecret == serverSecret {
     PopulateDatabasePool(true)

@@ -4,7 +4,7 @@ import (
   "strings"
   "strconv"
 
-  "github.com/prql/prql/util"
+  "github.com/prql/prql/lib"
   log "github.com/sirupsen/logrus"
 )
 
@@ -55,7 +55,7 @@ func PopulateTokenPool(refresh bool) {
     log.Info("Refreshing token pool")
   }
 
-  entries := util.ParseEntryFile("/var/lib/prql/tokens")
+  entries := lib.ParseEntryFile("/var/lib/prql/tokens")
 
   for i, parts := range entries {
     if len(parts) != 7 {

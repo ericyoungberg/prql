@@ -8,7 +8,7 @@ import (
   "strconv"
 
   "github.com/spf13/cobra"
-  "github.com/prql/prql/util"
+  "github.com/prql/prql/lib"
   log "github.com/sirupsen/logrus"
   "github.com/olekukonko/tablewriter"
 )
@@ -55,8 +55,8 @@ var newTokenCmd = &cobra.Command{
     }
 
     timeSeed := strconv.Itoa(int(time.Now().Unix()))
-    token    := util.CreateHash(strings.Join([]string{tokenParams.username, tokenParams.host, tokenParams.database, timeSeed}, ""))  
-    password, err := util.GetPassword(tokenParams.username)
+    token    := lib.CreateHash(strings.Join([]string{tokenParams.username, tokenParams.host, tokenParams.database, timeSeed}, ""))  
+    password, err := lib.GetPassword(tokenParams.username)
     if err != nil {
       log.Fatal(err) 
       return
@@ -64,7 +64,7 @@ var newTokenCmd = &cobra.Command{
 
     entry := []string{token, tokenParams.username, password, tokenParams.host, tokenParams.database, tokenParams.origins, strconv.FormatBool(tokenParams.living)}
 
-    err = util.AppendEntry(tokenFile, entry)
+    err = lib.AppendEntry(tokenFile, entry)
     if err != nil {
       log.Fatal("Could not generate new token.") 
       log.Fatal(err) 
@@ -82,7 +82,7 @@ var listTokensCmd = &cobra.Command{
   Use: "list",
   Short: "List all available tokens",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := util.ParseEntryFile(tokenFile)
+    entries := lib.ParseEntryFile(tokenFile)
 
     if tokenParams.quiet {
       tokens := make([]string, len(entries))
@@ -110,10 +110,10 @@ var removeTokenCmd = &cobra.Command{
   Use: "remove [tokens]",
   Short: "Remove token. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := util.ParseEntryFile(tokenFile)
-    entries = util.RemoveByColumn(args, entries, 0)
+    entries := lib.ParseEntryFile(tokenFile)
+    entries = lib.RemoveByColumn(args, entries, 0)
 
-    err := util.WriteEntryFile(tokenFile, entries)
+    err := lib.WriteEntryFile(tokenFile, entries)
     if err != nil {
       log.Error("Could not write changes to tokens file")
       log.Error(err)

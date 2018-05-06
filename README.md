@@ -23,40 +23,47 @@ specification when you know that, in your work domain, you will always be breaki
 GraphQL and JSON API are great in the proper domain, but: JSON API is fancy REST. GraphQL is too simple yet too complex at 
 the same time.
 
+#### What about PostgREST?
+
+PostgREST is brilliant, but again, it serves a different purpose than PrQL. In addition to different solution sets, PostgREST
+is specific to PostgreSQL while PrQL is database agnostic. As long as you have a SQL database, PrQL will have a driver to 
+connect to it. 
+
 
 ## Setup
 
 ### Building
 
-There are currently a few different ways of implementing the PrQL alpha:
-
-#### Download
-
-There are binaries for most modern distros:
+There are currently a two different ways of implementing the PrQL alpha:
 
 #### Go
 
-If you have go on your system, you can `go get` this repo and run `make install`.
+```sh
+go get github.com/prql/prql
+cd $GOPATH/src/github.com/prql/prql
+make install
+```
 
 #### Docker
 
-If you have Docker on your system, you can build for your specific system by running
 ```sh
 make with-docker ARCH=$YOUR_DISTRO
 ```
 Where `$YOUR_DISTRO` is one of the following: darwin/amd64 darwin/386 freebsd/amd64 freebsd/386 linux/arm linux/arm64 linux/amd64 linux/386 solaris/amd64 windows/amd64 windows/386
-ou will find your build in the _build/_ folder with your distro name appended.
+
+You will find your binaries in the _build/_ folder with your distro name appended.
 
 ### Installation
 
-On *nix systems, run `sudo ./install.sh`. This is temporary measure for the alpha release. What it does is setup the necessary
-system directories and files, installs binaries, and attempts to enable `prqld` as a 
+On *nix systems, run `sudo ./install.sh`. This is a temporary measure for the alpha release. It sets up the necessary
+system directories and files, installs binaries, and attempts to enable `prqld` as a systemd service.
 
-On Windows systems, :shrugs: I haven't figured what that needs yet. It's in alpha afterall.
+On Windows systems, :shrugs: I haven't figured out what that needs yet. It's in alpha afterall.
 
 ### Running
 
 If systemd exists on your system, `reboot` or `sudo systemctl start prqld`.
+
 Otherwise, you will have to manage prqld on your own by executing `prqld &`.
 
 To check if prqld is up and running, you can 
@@ -77,10 +84,12 @@ Now you're ready to follow the usage guide below!
 
 ### Setting up a database
 
+First, you have to inform PrQL of your database's location. You save this information by giving that database a name.
+
 ```sh
 sudo prql databases new \
             --name localpg \
-            --driver postgresql \
+            --driver postgresql \ # possible options for alpha are postgresql and mysql
             --port 5423
 ```
 
@@ -91,6 +100,9 @@ sudo prql databases list
 
 
 ### Generating an app token
+
+Now you can generate a token that maps to a user in a database that you have previously defined. That way you have a 
+secure way of allowing the client to let PrQL know which database server and user to execute queries on.
 
 ```sh
 sudo prql tokens new \
@@ -103,3 +115,14 @@ To view the tokens you have created, you follow the same pattern as the command 
 ```sh
 sudo prql tokens list
 ```
+
+### Query your database
+
+To tell PrQL which credentials to use, we pass a token in a header called `X-PrQL-Token`. If you have a need to, 
+you can change the name of the header by editing your _prql.toml_ config file.
+
+```sh
+curl -H 'X-PrQL-Token: f04e79dc8d1dd5453da438366c6162fb' \
+     "localhost:1999?query=SELECT id, name FROM users WHERE login_attempts > 3"
+```
+

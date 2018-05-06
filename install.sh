@@ -11,6 +11,7 @@ set -e;
 cp build/prql /usr/bin/prql
 cp build/prqld /usr/bin/prqld
 
+
 # Setup the working directory
 
 PRQL_DIR=/var/lib/prql
@@ -18,6 +19,7 @@ PRQL_DIR=/var/lib/prql
 mkdir -p $PRQL_DIR
 touch "$PRQL_DIR/databases" "$PRQL_DIR/tokens"
 cp config/prql.toml "$PRQL_DIR/prql.toml"
+chmod 604 "$PRQL_DIR/*"
 
 if which groupadd > /dev/null; then
   if ! grep -qE "^prql:" /etc/group; then
@@ -28,7 +30,6 @@ if which groupadd > /dev/null; then
 else
   echo 'Could not create prql group'
 fi
-
 
 
 # Setup prqld service if possible

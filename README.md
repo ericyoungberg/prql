@@ -123,6 +123,3 @@ To check if prqld is up and running, you can
 ```sh
 lsof -iTCP -sTCP:LISTEN | grep prqld
 ```
-
-Now you're ready to follow the usage guide below!
-

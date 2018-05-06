@@ -32,9 +32,6 @@ var (
 var tokensCmd = &cobra.Command{
   Use: "tokens",
   Short: "Generate, delete, or view all PrQL tokens",
-  Run: func(cmd *cobra.Command, args []string) {
-    fmt.Println(cmd.Short) 
-  },
 }
 
 

@@ -31,9 +31,6 @@ var (
 var databasesCmd = &cobra.Command{
   Use: "databases",
   Short: "Add, delete, or view all databases added to the system",
-  Run: func(cmd *cobra.Command, args []string) {
-    fmt.Println(cmd.Short) 
-  },
 }
 
 

@@ -1,0 +1,7 @@
+[Unit]
+Description=PrQL Server Daemon
+
+[Service]
+Type=simple
+WorkingDir=/var/lib/prql
+ExecStart=/usr/bin/prqld

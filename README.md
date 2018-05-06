@@ -30,50 +30,6 @@ is specific to PostgreSQL while PrQL is database agnostic. As long as you have a
 connect to it. 
 
 
-## Setup
-
-### Building
-
-There are currently a two different ways of implementing the PrQL alpha:
-
-#### Go
-
-```sh
-go get github.com/prql/prql
-cd $GOPATH/src/github.com/prql/prql
-make install
-```
-
-#### Docker
-
-```sh
-make with-docker ARCH=$YOUR_DISTRO
-```
-Where `$YOUR_DISTRO` is one of the following: darwin/amd64 darwin/386 freebsd/amd64 freebsd/386 linux/arm linux/arm64 linux/amd64 linux/386 solaris/amd64 windows/amd64 windows/386
-
-You will find your binaries in the _build/_ folder with your distro name appended.
-
-### Installation
-
-On *nix systems, run `sudo ./install.sh`. This is a temporary measure for the alpha release. It sets up the necessary
-system directories and files, installs binaries, and attempts to enable `prqld` as a systemd service.
-
-On Windows systems, :shrugs: I haven't figured out what that needs yet. It's in alpha afterall.
-
-### Running
-
-If systemd exists on your system, `reboot` or `sudo systemctl start prqld`.
-
-Otherwise, you will have to manage prqld on your own by executing `prqld &`.
-
-To check if prqld is up and running, you can 
-```sh
-lsof -iTCP -sTCP:LISTEN | grep prqld
-```
-
-Now you're ready to follow the usage guide below!
-
-
 ## Usage
 
 - Define database locations
@@ -90,7 +46,7 @@ First, you have to inform PrQL of your database's location. You save this inform
 sudo prql databases new \
             --name localpg \
             --driver postgresql \ # possible options for alpha are postgresql and mysql
-            --port 5423
+            --port 5432
 ```
 
 Then, to view the newly added database:
@@ -122,7 +78,51 @@ To tell PrQL which credentials to use, we pass a token in a header called `X-PrQ
 you can change the name of the header by editing your _prql.toml_ config file.
 
 ```sh
-curl -H 'X-PrQL-Token: f04e79dc8d1dd5453da438366c6162fb' \
-     "localhost:1999?query=SELECT id, name FROM users WHERE login_attempts > 3"
+curl -H "X-PrQL-Token: f04e79dc8d1dd5453da438366c6162fb" \
+        "localhost:1999?query=SELECT id, name FROM users WHERE login_attempts > 3"
 ```
+
+
+## Setup
+
+### Building
+
+There are currently a two different ways of implementing the PrQL alpha:
+
+#### Go
+
+```sh
+go get github.com/prql/prql
+cd $GOPATH/src/github.com/prql/prql
+make
+```
+
+#### Docker
+
+```sh
+make with-docker ARCH=$YOUR_DISTRO
+```
+Where `$YOUR_DISTRO` is one of the following: darwin/amd64 darwin/386 freebsd/amd64 freebsd/386 linux/arm linux/arm64 linux/amd64 linux/386 solaris/amd64 windows/amd64 windows/386
+
+You will find your binaries in the _build/_ folder with your distro name appended.
+
+### Installation
+
+On *nix systems, run `sudo ./install.sh`. This is a temporary measure for the alpha release. It sets up the necessary
+system directories and files, installs binaries, and attempts to enable `prqld` as a systemd service.
+
+On Windows systems, :shrugs: I haven't figured out what that needs yet. It's in alpha afterall.
+
+### Running
+
+If systemd exists on your system, `reboot` or `sudo systemctl start prqld`.
+
+Otherwise, you will have to manage prqld on your own by executing `prqld &`.
+
+To check if prqld is up and running, you can 
+```sh
+lsof -iTCP -sTCP:LISTEN | grep prqld
+```
+
+Now you're ready to follow the usage guide below!
 

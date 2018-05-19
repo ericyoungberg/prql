@@ -35,6 +35,15 @@
   revision = "b8a9be070da40449e501c3c4730a889e42d87a9e"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/prql/prql"
+  packages = [
+    "cli/cmd",
+    "lib"
+  ]
+  revision = "1ae3195c4abf4ca7451eccd92d9b2d2cca8ffe95"
+
+[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
@@ -70,6 +79,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5c722cc4e2f1f2e1466823a82dbfc74fafb7cec16bef9b4f9a5005f0dce1fa5c"
+  inputs-digest = "883e85502842a2dc0eaee25ed74d3e09b4bcf7688916360dc85ed3d5fdc63228"
   solver-name = "gps-cdcl"
   solver-version = 1

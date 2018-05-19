@@ -1,7 +1,10 @@
 [Unit]
-Description=PrQL Server Daemon
+Description=PrQL Server
 
 [Service]
 Type=simple
-WorkingDir=/var/lib/prql
 ExecStart=/usr/bin/prqld
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

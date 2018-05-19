@@ -8,6 +8,7 @@ import (
   _ "github.com/lib/pq"
   "github.com/prql/prql/lib"
   log "github.com/sirupsen/logrus"
+  _ "github.com/go-sql-driver/mysql"
 )
 
 

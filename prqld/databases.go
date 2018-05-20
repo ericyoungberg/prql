@@ -122,9 +122,12 @@ func getDatabase(token string) *sql.DB {
 
   db, ok = databaseConnections[tokenEntry.hostName] 
   if ok != true {
-    dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%d sslmode=disable"
-    dbConnStringVars := []interface{}{tokenEntry.user, tokenEntry.password, tokenEntry.dbname, databaseEntry.host, databaseEntry.port}
+    //dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%d sslmode=disable"
+    dbConnStringFmt := "%s:%s@tcp(%s:%d)/%s"
+    dbConnStringVars := []interface{}{tokenEntry.user, tokenEntry.password, databaseEntry.host, databaseEntry.port, tokenEntry.dbname}
     dbConnString := fmt.Sprintf(dbConnStringFmt, dbConnStringVars...)
+
+    fmt.Println(databaseEntry.driver, dbConnString)
 
     db, err = sql.Open(databaseEntry.driver, dbConnString)
     if err != nil {

@@ -45,7 +45,7 @@ First, you have to inform PrQL of your database's location. You save this inform
 ```sh
 sudo prql databases new \
             --name localpg \
-            --driver postgresql \ # possible options for alpha are postgresql and mysql
+            --driver postgres \ # possible options for alpha are postgres and mysql
             --port 5432
 ```
 

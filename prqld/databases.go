@@ -3,12 +3,13 @@ package main
 import (
   "fmt"
   "strconv"
+  "errors"
   "database/sql"
+  "github.com/go-sql-driver/mysql"
 
   _ "github.com/lib/pq"
   "github.com/prql/prql/lib"
   log "github.com/sirupsen/logrus"
-  _ "github.com/go-sql-driver/mysql"
 )
 
 
@@ -108,7 +109,6 @@ func PerformQuery(query string, token string) (map[string]interface{}, error) {
 func getDatabase(token string) *sql.DB {
   var db *sql.DB
   var ok bool
-  var err error
 
   tokenEntry, ok := TokenPool[token]
   if ok != true {
@@ -120,24 +120,49 @@ func getDatabase(token string) *sql.DB {
     IpLogger.Panic("Invalid database server name")
   }
 
-  db, ok = databaseConnections[tokenEntry.hostName] 
+  db, ok = databaseConnections[token] 
   if ok != true {
-    //dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%d sslmode=disable"
-    dbConnStringFmt := "%s:%s@tcp(%s:%d)/%s"
-    dbConnStringVars := []interface{}{tokenEntry.user, tokenEntry.password, databaseEntry.host, databaseEntry.port, tokenEntry.dbname}
-    dbConnString := fmt.Sprintf(dbConnStringFmt, dbConnStringVars...)
 
-    fmt.Println(databaseEntry.driver, dbConnString)
-
-    db, err = sql.Open(databaseEntry.driver, dbConnString)
+    dbConnString, err := generateDSN(&tokenEntry, &databaseEntry)
     if err != nil {
       IpLogger.Error(err) 
-    }
+    } else {
+      db, err = sql.Open(databaseEntry.driver, dbConnString)
+      if err != nil {
+        IpLogger.Error(err) 
+      }
 
-    databaseConnections[tokenEntry.hostName] = db
+      databaseConnections[token] = db
+    }
   }
 
   return db
+}
+
+func generateDSN(token *TokenEntry, database *DatabaseEntry) (string, error) {
+  var dsn string = ""
+  var err error = nil
+
+  switch database.driver {
+    case "mysql":
+      dsnConfig := mysql.NewConfig()
+      dsnConfig.User = token.user
+      dsnConfig.Passwd = token.password
+      dsnConfig.Net = "tcp"
+      dsnConfig.Addr = fmt.Sprintf("%s:%d", database.host, database.port)
+      dsnConfig.DBName = token.dbname
+      dsn = dsnConfig.FormatDSN()
+
+    case "postgres":
+      dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%d sslmode=disable"
+      dbConnStringVars := []interface{}{token.user, token.password, token.dbname, database.host, database.port}
+      dsn = fmt.Sprintf(dbConnStringFmt, dbConnStringVars...)
+
+    default:
+      err = errors.New(fmt.Sprintf("database driver %s does not exist", database.driver))
+  }
+
+  return dsn, err
 }
 
 

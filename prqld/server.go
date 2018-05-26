@@ -141,7 +141,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
   data, err := PerformQuery(query, token)
   if err != nil {
-    fail(w, "Query failed") 
+    fail(w, err.Error())
   }
 
   json.NewEncoder(w).Encode(data)

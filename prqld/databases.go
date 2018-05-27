@@ -9,69 +9,16 @@ import (
 
   _ "github.com/lib/pq"
   "github.com/prql/prql/lib"
-  log "github.com/sirupsen/logrus"
 )
 
-
-type DatabaseEntry struct {
-  ssl bool
-
-  port int
-
-  hostName string
-  driver   string
-  host     string
-}
-
 var (
-  databasePool map[string]DatabaseEntry
+  databasePool map[string]lib.DatabaseEntry
   databaseConnections = make(map[string]*sql.DB)
 )
 
-
-/**
-* Database File Entry Schema
-*
-* name:driver:host:port:ssl
-*
-* name - A string used to identify the database server.
-*
-* driver -  The type of database server. eg: postgres, mysql, ...
-* 
-* host - The address of the database server.
-* 
-* port - The host's port number where the database server is listening.
-*
-* ssl - A boolean that indicates whether we should verify ssl or not.
-*/
-
 func populateDatabasePool() {
-  databasePool = make(map[string]DatabaseEntry) 
-  entries := lib.ParseEntryFile(lib.Sys.DatabaseFile)
-
-  for i, parts := range entries {
-    if len(parts) != 5 {
-      log.Error("Invalid database entry at line " + strconv.Itoa(i + 1)) 
-      continue
-    }
-
-    ssl, err := strconv.ParseBool(parts[4])
-    if err != nil {
-      ssl = false 
-    }
-
-    port, err := strconv.Atoi(parts[3])
-    if err != nil {
-      port = 5432
-    }
-
-    databasePool[parts[0]] = DatabaseEntry{
-      driver: parts[1],
-      host: parts[2],
-      port: port,
-      ssl: ssl,
-    }
-  }
+  databasePool = make(map[string]lib.DatabaseEntry)
+  databasePool = lib.GetDatabaseEntries()
 }
 
 
@@ -111,7 +58,7 @@ func getDatabase(token string) *sql.DB {
     ipLogger.Panic("Invalid token") 
   }
 
-  databaseEntry, ok := databasePool[tokenEntry.hostName]
+  databaseEntry, ok := databasePool[tokenEntry.HostName]
   if ok != true {
     ipLogger.Panic("Invalid database server name")
   }
@@ -123,7 +70,7 @@ func getDatabase(token string) *sql.DB {
     if err != nil {
       ipLogger.Error(err) 
     } else {
-      db, err = sql.Open(databaseEntry.driver, dbConnString)
+      db, err = sql.Open(databaseEntry.Driver, dbConnString)
       if err != nil {
         ipLogger.Error(err) 
       }
@@ -135,27 +82,27 @@ func getDatabase(token string) *sql.DB {
   return db
 }
 
-func generateDSN(token *TokenEntry, database *DatabaseEntry) (string, error) {
+func generateDSN(token *lib.TokenEntry, database *lib.DatabaseEntry) (string, error) {
   var dsn string = ""
   var err error = nil
 
-  switch database.driver {
+  switch database.Driver {
     case "mysql":
       dsnConfig := mysql.NewConfig()
-      dsnConfig.User = token.user
-      dsnConfig.Passwd = token.password
+      dsnConfig.User = token.User
+      dsnConfig.Passwd = token.Password
       dsnConfig.Net = "tcp"
-      dsnConfig.Addr = fmt.Sprintf("%s:%d", database.host, database.port)
-      dsnConfig.DBName = token.dbname
+      dsnConfig.Addr = fmt.Sprintf("%s:%d", database.Host, database.Port)
+      dsnConfig.DBName = token.DBName
       dsn = dsnConfig.FormatDSN()
 
     case "postgres":
       dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%d sslmode=disable"
-      dbConnStringVars := []interface{}{token.user, token.password, token.dbname, database.host, database.port}
+      dbConnStringVars := []interface{}{token.User, token.Password, token.DBName, database.Host, database.Port}
       dsn = fmt.Sprintf(dbConnStringFmt, dbConnStringVars...)
 
     default:
-      err = errors.New(fmt.Sprintf("database driver %s does not exist", database.driver))
+      err = errors.New(fmt.Sprintf("database driver %s does not exist", database.Driver))
   }
 
   return dsn, err

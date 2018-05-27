@@ -12,8 +12,8 @@ func main() {
     log.Fatal("could not open prql.toml")     
   }
 
-  populateDatabasePool()
   populateTokenPool()
+  populateDatabasePool()
 
   defer closeDatabaseConnections()
 

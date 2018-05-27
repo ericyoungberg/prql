@@ -24,7 +24,7 @@ type DatabaseEntry struct {
 }
 
 var (
-  DatabasePool = make(map[string]DatabaseEntry)
+  databasePool map[string]DatabaseEntry
   databaseConnections = make(map[string]*sql.DB)
 )
 
@@ -45,12 +45,8 @@ var (
 * ssl - A boolean that indicates whether we should verify ssl or not.
 */
 
-func PopulateDatabasePool(refresh bool) {
-  if refresh {
-    DatabasePool = make(map[string]DatabaseEntry) 
-    log.Info("Refreshing database pool")
-  }
-
+func populateDatabasePool() {
+  databasePool = make(map[string]DatabaseEntry) 
   entries := lib.ParseEntryFile(lib.Sys.DatabaseFile)
 
   for i, parts := range entries {
@@ -69,7 +65,7 @@ func PopulateDatabasePool(refresh bool) {
       port = 5432
     }
 
-    DatabasePool[parts[0]] = DatabaseEntry {
+    databasePool[parts[0]] = DatabaseEntry{
       driver: parts[1],
       host: parts[2],
       port: port,
@@ -79,7 +75,7 @@ func PopulateDatabasePool(refresh bool) {
 }
 
 
-func CloseDatabaseConnections() {
+func closeDatabaseConnections() {
   for k, v := range databaseConnections {
     v.Close()  
     delete(databaseConnections, k)
@@ -87,7 +83,7 @@ func CloseDatabaseConnections() {
 }
 
 
-func PerformQuery(query string, token string) (map[string]interface{}, error) {
+func performQuery(query string, token string) (map[string]interface{}, error) {
   db := getDatabase(token)
   
   rows, err := db.Query(query)
@@ -110,14 +106,14 @@ func getDatabase(token string) *sql.DB {
   var db *sql.DB
   var ok bool
 
-  tokenEntry, ok := TokenPool[token]
+  tokenEntry, ok := tokenPool[token]
   if ok != true {
-    IpLogger.Panic("Invalid token") 
+    ipLogger.Panic("Invalid token") 
   }
 
-  databaseEntry, ok := DatabasePool[tokenEntry.hostName]
+  databaseEntry, ok := databasePool[tokenEntry.hostName]
   if ok != true {
-    IpLogger.Panic("Invalid database server name")
+    ipLogger.Panic("Invalid database server name")
   }
 
   db, ok = databaseConnections[token] 
@@ -125,11 +121,11 @@ func getDatabase(token string) *sql.DB {
 
     dbConnString, err := generateDSN(&tokenEntry, &databaseEntry)
     if err != nil {
-      IpLogger.Error(err) 
+      ipLogger.Error(err) 
     } else {
       db, err = sql.Open(databaseEntry.driver, dbConnString)
       if err != nil {
-        IpLogger.Error(err) 
+        ipLogger.Error(err) 
       }
 
       databaseConnections[token] = db
@@ -196,7 +192,7 @@ func structureData(rows *sql.Rows) (map[string]interface{}, error) {
   for rows.Next() {
     err = rows.Scan(buf...)
     if err != nil {
-      IpLogger.Error(err)
+      ipLogger.Error(err)
     }
 
     structuredRows = append(structuredRows, make(map[string]interface{}))
@@ -222,7 +218,7 @@ func structureData(rows *sql.Rows) (map[string]interface{}, error) {
         }
 
         if err != nil {
-          IpLogger.Error(err)
+          ipLogger.Error(err)
           structuredRows[rowNum][colName] = temp
         }
       }

@@ -2,14 +2,20 @@ package main
 
 import (
   "github.com/prql/prql/lib"
+  log "github.com/sirupsen/logrus"
 )
 
 
 func main() {
-  PopulateDatabasePool(false)
-  PopulateTokenPool(false)
+  config, err := lib.GetConfig()
+  if err != nil {
+    log.Fatal("could not open prql.toml")     
+  }
 
-  defer CloseDatabaseConnections()
+  populateDatabasePool()
+  populateTokenPool()
 
-  StartServer(&lib.Config{Port: 1999})
+  defer closeDatabaseConnections()
+
+  startServer(&config)
 }

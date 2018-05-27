@@ -12,20 +12,22 @@ import (
   log "github.com/sirupsen/logrus"
 )
 
-const (
-  HeaderName string = "X-PrQL-Token"
-  secretHeader string = "X-PrQL-Secret"
-)
+type postRequestBody struct {
+  Query string
+}
 
 var (
-  IpLogger log.FieldLogger
+  ipLogger log.FieldLogger
   host string
 )
 
-func StartServer(config *lib.Config) {
+func startServer(config *lib.Config) {
   mux := http.NewServeMux()
   port := fmt.Sprintf(":%d", config.Port)
   host = fmt.Sprintf("127.0.0.1%s", port)
+
+  refreshTokens := lib.SecretExec(populateTokenPool)
+  refreshDatabases := lib.SecretExec(populateDatabasePool)
 
   mux.HandleFunc("/", handler)
   mux.HandleFunc("/refresh-tokens", refreshTokens)
@@ -38,11 +40,6 @@ func StartServer(config *lib.Config) {
 
   log.Info("Starting server")
   http.ListenAndServe(port, mux)
-}
-
-
-type postRequestBody struct {
-  Query string
 }
 
 func checkServerStatus() {
@@ -76,46 +73,13 @@ func checkServerStatus() {
   }
 }
 
-func refreshTokens(w http.ResponseWriter, r *http.Request) {
-  config, err := lib.GetConfig()
-  if err != nil {
-    log.Fatal(err) 
-  }
-
-  clientSecret := r.Header.Get(config.Headers.Secret)
-  serverSecret := config.Secret
-
-  if clientSecret == serverSecret {
-    PopulateTokenPool(true)
-  } else {
-    fail(w, "This endpoint is restricted to a local prql client")
-  }
-}
-
-func refreshDatabases(w http.ResponseWriter, r *http.Request) {
-  config, err := lib.GetConfig()
-  if err != nil {
-    log.Fatal(err) 
-  }
-
-  clientSecret := r.Header.Get(config.Headers.Secret)
-  serverSecret := config.Secret
-
-  if clientSecret == serverSecret {
-    PopulateDatabasePool(true)
-  } else {
-    fail(w, "This endpoint is restricted to a local prql client")
-  }
-
-}
-
 func handler(w http.ResponseWriter, r *http.Request) {
   config, err := lib.GetConfig()
   if err != nil {
     log.Fatal(err) 
   }
 
-  IpLogger = log.WithFields(log.Fields{"IP": r.RemoteAddr})
+  ipLogger = lib.NewIPLogger(r)
 
   var token string
 
@@ -130,16 +94,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
       return
     }
   }
-  IpLogger.Info(fmt.Sprintf("Received request using token %s", token))
+  ipLogger.Info(fmt.Sprintf("Received request using token %s", token))
 
   query := getQuery(r)
   if query == "" {
     fail(w, "No query")
     return
   }
-  IpLogger.Info(fmt.Sprintf("Token %s was used for the following query: \"%s\"", token, query))
+  ipLogger.Info(fmt.Sprintf("Token %s was used for the following query: \"%s\"", token, query))
 
-  data, err := PerformQuery(query, token)
+  data, err := performQuery(query, token)
   if err != nil {
     fail(w, err.Error())
   }
@@ -164,13 +128,13 @@ func getQuery(r *http.Request) string {
 
     bodyBytes, err := ioutil.ReadAll(r.Body)
     if err != nil {
-      IpLogger.Panic(err) 
+      ipLogger.Panic(err) 
     }
 
     if len(bodyBytes) != 0 {
       err = json.Unmarshal(bodyBytes, &body)
       if err != nil {
-        IpLogger.Panic(err) 
+        ipLogger.Panic(err) 
       }
 
       if body.Query != "" {
@@ -183,6 +147,6 @@ func getQuery(r *http.Request) string {
 } 
 
 func fail(w http.ResponseWriter, message string) {
-  IpLogger.Error(message)
+  ipLogger.Error(message)
   http.Error(w, message, http.StatusBadRequest)
 }

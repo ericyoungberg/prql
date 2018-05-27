@@ -21,7 +21,7 @@ type TokenEntry struct {
 }
 
 var (
-  TokenPool = make(map[string]TokenEntry)
+  tokenPool map[string]TokenEntry
 )
 
 
@@ -49,12 +49,8 @@ var (
 *          to the specified database whenever the system starts up.
 */
 
-func PopulateTokenPool(refresh bool) {
-  if refresh {
-    TokenPool = make(map[string]TokenEntry) 
-    log.Info("Refreshing token pool")
-  }
-
+func populateTokenPool() {
+  tokenPool = make(map[string]TokenEntry) 
   entries := lib.ParseEntryFile(lib.Sys.TokenFile)
 
   for i, parts := range entries {
@@ -70,7 +66,7 @@ func PopulateTokenPool(refresh bool) {
       living = false 
     }
 
-    TokenPool[parts[0]] = TokenEntry {
+    tokenPool[parts[0]] = TokenEntry{
       user: parts[1], 
       password: parts[2], 
       hostName: parts[3], 

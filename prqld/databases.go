@@ -65,7 +65,6 @@ func getDatabase(token string) *sql.DB {
 
   db, ok = databaseConnections[token] 
   if ok != true {
-
     dbConnString, err := generateDSN(&tokenEntry, &databaseEntry)
     if err != nil {
       log.Error(err) 

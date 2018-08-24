@@ -49,14 +49,13 @@ func checkServerStatus() {
     endpoint := url.URL{Scheme: "http", Host: host, Path: "check"}
     res, err := http.Get(endpoint.String())
     if err != nil {
-      fmt.Println("error: ", err)
+      log.Error(err)
       continue
     }
 
     res.Body.Close()
 
     if res.StatusCode != http.StatusOK {
-      fmt.Println(res.StatusCode)
       continue 
     }
 
@@ -76,7 +75,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
   if err != nil {
     log.Fatal(err) 
   }
-
 
   var token string
 

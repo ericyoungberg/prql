@@ -3,6 +3,8 @@
 Port = 1999
 Secret = "kb6v12jvlgb1k23v6kb9qfb123kbfhDQ34TK"
 
+LogFile = "/var/lib/prql/access.log"
+
 [Headers]
 Token = "X-PrQL-Token"
 Secret = "X-PrQL-Secret"

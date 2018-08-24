@@ -13,6 +13,8 @@ type Config struct {
   Port    int
   Secret  string
 
+  LogFile string
+
   Headers headers
 }
 

@@ -11,7 +11,7 @@ func main() {
     logrus.Fatal("could not open prql.toml")     
   }
 
-  setupLogger()
+  setupLogger(&config)
 
   populateTokenPool()
   populateDatabasePool()

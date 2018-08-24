@@ -52,8 +52,6 @@ func SecretExec(fn func()) func(http.ResponseWriter, *http.Request) {
       fn()
     } else {
       errorMessage := "command is only available to local prql"
-      ipLogger := NewIPLogger(r) 
-      ipLogger.Error(errorMessage)
       http.Error(w, errorMessage, http.StatusBadRequest)
     }
   }

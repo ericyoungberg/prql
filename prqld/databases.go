@@ -55,12 +55,12 @@ func getDatabase(token string) *sql.DB {
 
   tokenEntry, ok := tokenPool[token]
   if ok != true {
-    ipLogger.Panic("Invalid token") 
+    log.Panic("Invalid token") 
   }
 
   databaseEntry, ok := databasePool[tokenEntry.HostName]
   if ok != true {
-    ipLogger.Panic("Invalid database server name")
+    log.Panic("Invalid database server name")
   }
 
   db, ok = databaseConnections[token] 
@@ -68,11 +68,11 @@ func getDatabase(token string) *sql.DB {
 
     dbConnString, err := generateDSN(&tokenEntry, &databaseEntry)
     if err != nil {
-      ipLogger.Error(err) 
+      log.Error(err) 
     } else {
       db, err = sql.Open(databaseEntry.Driver, dbConnString)
       if err != nil {
-        ipLogger.Error(err) 
+        log.Error(err) 
       }
 
       databaseConnections[token] = db
@@ -139,7 +139,7 @@ func structureData(rows *sql.Rows) (map[string]interface{}, error) {
   for rows.Next() {
     err = rows.Scan(buf...)
     if err != nil {
-      ipLogger.Error(err)
+      log.Error(err)
     }
 
     structuredRows = append(structuredRows, make(map[string]interface{}))
@@ -165,7 +165,7 @@ func structureData(rows *sql.Rows) (map[string]interface{}, error) {
         }
 
         if err != nil {
-          ipLogger.Error(err)
+          log.Error(err)
           structuredRows[rowNum][colName] = temp
         }
       }

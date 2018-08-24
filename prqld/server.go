@@ -9,7 +9,6 @@ import (
   "encoding/json"
 
   "github.com/prql/prql/lib"
-  log "github.com/sirupsen/logrus"
 )
 
 type postRequestBody struct {
@@ -17,7 +16,6 @@ type postRequestBody struct {
 }
 
 var (
-  ipLogger log.FieldLogger
   host string
 )
 
@@ -79,7 +77,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
     log.Fatal(err) 
   }
 
-  ipLogger = lib.NewIPLogger(r)
 
   var token string
 
@@ -94,14 +91,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
       return
     }
   }
-  ipLogger.Info(fmt.Sprintf("Received request using token %s", token))
+  log.Info(fmt.Sprintf("Received request using token %s", token))
 
   query := getQuery(r)
   if query == "" {
     fail(w, "No query")
     return
   }
-  ipLogger.Info(fmt.Sprintf("Token %s was used for the following query: \"%s\"", token, query))
+  log.Info(fmt.Sprintf("Token %s was used for the following query: \"%s\"", token, query))
 
   data, err := performQuery(query, token)
   if err != nil {
@@ -128,13 +125,13 @@ func getQuery(r *http.Request) string {
 
     bodyBytes, err := ioutil.ReadAll(r.Body)
     if err != nil {
-      ipLogger.Panic(err) 
+      log.Panic(err) 
     }
 
     if len(bodyBytes) != 0 {
       err = json.Unmarshal(bodyBytes, &body)
       if err != nil {
-        ipLogger.Panic(err) 
+        log.Panic(err) 
       }
 
       if body.Query != "" {
@@ -147,6 +144,6 @@ func getQuery(r *http.Request) string {
 } 
 
 func fail(w http.ResponseWriter, message string) {
-  ipLogger.Error(message)
+  log.Error(message)
   http.Error(w, message, http.StatusBadRequest)
 }

@@ -9,12 +9,19 @@ import (
 
 
 type Logger struct {
+  logrus.Logger
+
   Console *logrus.Logger
   system  *logrus.Logger
+
   config  *lib.Config
 }
 
-var log *Logger
+
+var (
+  log *Logger
+)
+
 
 func setupLogger(config *lib.Config) {
   if log == nil {
@@ -27,53 +34,33 @@ func setupLogger(config *lib.Config) {
 
 }
 
-func (logger *Logger) openSystemLogger() (*os.File, error) {
-  fd, err := os.OpenFile(logger.config.LogFile, os.O_WRONLY | os.O_CREATE | os.O_APPEND, 0644)
+func (logger *Logger) onSystem(fn func(...interface{}), args ...interface{}) {
+  logFile, err := os.OpenFile(logger.config.LogFile, os.O_WRONLY | os.O_CREATE | os.O_APPEND, 0644)
   if err != nil {
-    return nil, err 
+    return
   }
+  defer logFile.Close()
 
-  log.system.Out = fd 
-
-  return fd, nil
+  logger.system.Out = logFile
+  fn(args...)
 }
 
 func (logger *Logger) Info(args ...interface{}) {
-  logFile, err := logger.openSystemLogger() 
-  if err == nil {
-    logger.system.Info(args)
-    defer logFile.Close()
-  }
-
-  logger.Console.Info(args)
+  logger.onSystem(logger.system.Info, args...)
+  logger.Console.Info(args...)
 }
 
 func (logger *Logger) Panic(args ...interface{}) {
-  logFile, err := logger.openSystemLogger() 
-  if err == nil {
-    logger.system.Panic(args)
-    defer logFile.Close()
-  }
-
-  logger.Console.Panic(args)
+  logger.onSystem(logger.system.Panic, args...)
+  logger.Console.Panic(args...)
 }
 
 func (logger *Logger) Error(args ...interface{}) {
-  logFile, err := logger.openSystemLogger() 
-  if err == nil {
-    logger.system.Error(args)
-    defer logFile.Close()
-  }
-
-  logger.Console.Error(args)
+  logger.onSystem(logger.system.Error, args...)
+  logger.Console.Error(args...)
 }
 
 func (logger *Logger) Fatal(args ...interface{}) {
-  logFile, err := logger.openSystemLogger() 
-  if err == nil {
-    logger.system.Fatal(args)
-    defer logFile.Close()
-  }
-
-  logger.Console.Fatal(args)
+  logger.onSystem(logger.system.Fatal, args...)
+  logger.Console.Fatal(args...)
 }

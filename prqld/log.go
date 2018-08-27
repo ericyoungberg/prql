@@ -28,10 +28,10 @@ func setupLogger(config *lib.Config) {
     log = &Logger{
       system: logrus.New(),
       Console: logrus.New(),
-      config: config,
     } 
   }
 
+  log.config = config
 }
 
 func (logger *Logger) onSystem(fn func(...interface{}), args ...interface{}) {

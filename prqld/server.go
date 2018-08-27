@@ -91,6 +91,24 @@ func handler(w http.ResponseWriter, r *http.Request) {
   }
   log.Info(fmt.Sprintf("Received request using token %s", token))
 
+  tokenEntry := tokenPool[token]
+  if tokenEntry.Origins != nil && len(tokenEntry.Origins) > 0 {
+    unauthorized := true
+    for _, authorized := range tokenEntry.Origins {
+      log.Info(fmt.Sprintf("%s|", authorized))
+
+      if authorized == r.RemoteAddr {
+        unauthorized = false
+        break 
+      }
+    }
+
+    if unauthorized {
+      fail(w, fmt.Sprintf("Origin %s is not authorized to use token", r.RemoteAddr)) 
+      return
+    }
+  }
+
   query := getQuery(r)
   if query == "" {
     fail(w, "No query")

@@ -114,7 +114,19 @@ func GetTokenEntries() map[string]TokenEntry {
       continue
     }
 
-    origins := strings.Split(parts[5], ",")
+    originEntries := strings.Split(parts[5], ",")
+    origins := make([]string, len(originEntries))
+    for _, origin := range originEntries {
+      if origin != "" {
+        origins = append(origins, origin)
+      }
+    }
+
+    if len(origins) == 1 && origins[0] == "" {
+      origins = nil 
+    }
+
+    println(origins)
 
     living, err := strconv.ParseBool(parts[6])
     if err != nil {

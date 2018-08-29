@@ -133,7 +133,7 @@ func structureData(rows *sql.Rows) (map[string]interface{}, error) {
   }
 
   var structuredRows []map[string]interface{}
-  var rowNum int16 = 0
+  var rowNum uint32 = 0
 
   for rows.Next() {
     err = rows.Scan(buf...)

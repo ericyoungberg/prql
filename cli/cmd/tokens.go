@@ -51,15 +51,15 @@ var newTokenCmd = &cobra.Command{
     if origins != "" {
       originEntries := strings.Split(origins, ",")
       validOrigins := make([]string, 0, len(originEntries))
+
       for _, origin := range originEntries {
-        println(fmt.Sprintf("origin: |%s| |%s|", origin, strings.Replace(origin, " ", "", -1)))
-        if strings.Replace(origin, " ", "", -1) != "" {
-          validOrigins = append(validOrigins, origin)
+        stripped := strings.Replace(origin, " ", "", -1)
+        if stripped != "" {
+          validOrigins = append(validOrigins, stripped)
         }
       }
+      origins = strings.Join(validOrigins, ",")
     }
-
-    println(fmt.Sprintf("Origins: |%s|", origins))
 
     timeSeed := strconv.Itoa(int(time.Now().Unix()))
     token    := lib.CreateHash(strings.Join([]string{tokenParams.username, tokenParams.host, tokenParams.database, timeSeed}, ""))  

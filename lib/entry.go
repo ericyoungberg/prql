@@ -2,6 +2,7 @@ package lib
 
 import (
   "os"
+  "fmt"
   "strings"
   "strconv"
   "io/ioutil"
@@ -116,9 +117,11 @@ func GetTokenEntries() map[string]TokenEntry {
 
     originEntries := strings.Split(parts[5], ",")
     origins := make([]string, len(originEntries))
+    originIndex := 0
     for _, origin := range originEntries {
       if origin != "" {
-        origins = append(origins, origin)
+        origins[originIndex] = origin
+        originIndex += 1
       }
     }
 
@@ -126,7 +129,7 @@ func GetTokenEntries() map[string]TokenEntry {
       origins = nil 
     }
 
-    println(origins)
+    fmt.Printf("%q\n",origins)
 
     living, err := strconv.ParseBool(parts[6])
     if err != nil {
@@ -145,6 +148,8 @@ func GetTokenEntries() map[string]TokenEntry {
 
   return tokens
 }
+
+
 func ParseEntryFile(filePath string) [][]string {
   var splitEntries [][]string
 

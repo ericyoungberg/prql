@@ -2,7 +2,6 @@ package lib
 
 import (
   "os"
-  "fmt"
   "strings"
   "strconv"
   "io/ioutil"
@@ -128,8 +127,6 @@ func GetTokenEntries() map[string]TokenEntry {
     if len(origins) == 1 && origins[0] == "" {
       origins = nil 
     }
-
-    fmt.Printf("%q\n",origins)
 
     living, err := strconv.ParseBool(parts[6])
     if err != nil {

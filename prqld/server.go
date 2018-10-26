@@ -89,22 +89,26 @@ func handler(w http.ResponseWriter, r *http.Request) {
       return
     }
   }
-  log.Info(fmt.Sprintf("Received request using token %s", token))
+
+  requestOrigin := r.Header.Get("Origin")
+  if requestOrigin == "" {
+    requestOrigin = "[Unknown Origin]"
+  }
+  log.Info(fmt.Sprintf("Received request from %s using token %s", requestOrigin, token))
 
   tokenEntry := tokenPool[token]
+  
   if tokenEntry.Origins != nil && len(tokenEntry.Origins) > 0 {
     unauthorized := true
     for _, authorized := range tokenEntry.Origins {
-      log.Info(fmt.Sprintf("%s|", authorized))
-
-      if authorized == r.RemoteAddr {
+      if authorized == requestOrigin {
         unauthorized = false
         break 
       }
     }
 
     if unauthorized {
-      fail(w, fmt.Sprintf("Origin %s is not authorized to use token", r.RemoteAddr)) 
+      fail(w, fmt.Sprintf("Origin %s is not authorized to use token", requestOrigin)) 
       return
     }
   }

@@ -50,12 +50,14 @@ var newTokenCmd = &cobra.Command{
     origins := tokenParams.origins
     if origins != "" {
       originEntries := strings.Split(origins, ",")
-      validOrigins := make([]string, 0, len(originEntries))
+      validOrigins := make([]string, len(originEntries))
+      validOriginsIndex := 0
 
       for _, origin := range originEntries {
         stripped := strings.Replace(origin, " ", "", -1)
         if stripped != "" {
-          validOrigins = append(validOrigins, stripped)
+          validOrigins[validOriginsIndex] = stripped
+          validOriginsIndex += 1
         }
       }
       origins = strings.Join(validOrigins, ",")

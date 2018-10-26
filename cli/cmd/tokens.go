@@ -47,6 +47,22 @@ var newTokenCmd = &cobra.Command{
       log.Fatal("Missing database [-d]")
     }
 
+    origins := tokenParams.origins
+    if origins != "" {
+      originEntries := strings.Split(origins, ",")
+      validOrigins := make([]string, len(originEntries))
+      validOriginsIndex := 0
+
+      for _, origin := range originEntries {
+        stripped := strings.Replace(origin, " ", "", -1)
+        if stripped != "" {
+          validOrigins[validOriginsIndex] = stripped
+          validOriginsIndex += 1
+        }
+      }
+      origins = strings.Join(validOrigins, ",")
+    }
+
     timeSeed := strconv.Itoa(int(time.Now().Unix()))
     token    := lib.CreateHash(strings.Join([]string{tokenParams.username, tokenParams.host, tokenParams.database, timeSeed}, ""))  
     password, err := lib.GetPassword(tokenParams.username)
@@ -55,7 +71,7 @@ var newTokenCmd = &cobra.Command{
       return
     }
 
-    entry := []string{token, tokenParams.username, password, tokenParams.host, tokenParams.database, tokenParams.origins, strconv.FormatBool(tokenParams.living)}
+    entry := []string{token, tokenParams.username, password, tokenParams.host, tokenParams.database, origins, strconv.FormatBool(tokenParams.living)}
 
     err = lib.AppendEntry(lib.Sys.TokenFile, entry)
     if err != nil {

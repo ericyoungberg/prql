@@ -129,7 +129,7 @@ func structureData(rows *sql.Rows) (map[string]interface{}, error) {
   buf := make([]interface{}, len(colTypes))
 
   for i, _ := range rawData {
-    buf[i]  = &rawData[i]
+    buf[i] = &rawData[i]
   }
 
   var structuredRows []map[string]interface{}

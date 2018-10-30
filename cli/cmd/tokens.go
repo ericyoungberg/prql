@@ -65,11 +65,12 @@ var newTokenCmd = &cobra.Command{
 
     timeSeed := strconv.Itoa(int(time.Now().Unix()))
     token    := lib.CreateHash(strings.Join([]string{tokenParams.username, tokenParams.host, tokenParams.database, timeSeed}, ""))  
-    password, err := lib.GetPassword(tokenParams.username)
+    password, err := lib.GetPasswordFromTerminal(tokenParams.username)
     if err != nil {
       log.Fatal(err) 
       return
     }
+    password = lib.InsecureEncryptString(password)
 
     entry := []string{token, tokenParams.username, password, tokenParams.host, tokenParams.database, origins, strconv.FormatBool(tokenParams.living)}
 

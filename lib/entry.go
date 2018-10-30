@@ -10,7 +10,9 @@ import (
 )
 
 
-const ENTRY_DELIMITER string = ":"
+const (
+  entryDelimiter string = ":"
+)
 
 type DatabaseEntry struct {
   SSL bool
@@ -133,9 +135,15 @@ func GetTokenEntries() map[string]TokenEntry {
       living = false 
     }
 
+    password, err := InsecureDecryptString(parts[2])
+    if err != nil {
+      log.Error("Couldn't decrypt password at line " + strconv.Itoa(i + 1)) 
+      continue
+    }
+
     tokens[parts[0]] = TokenEntry{
       User: parts[1], 
-      Password: parts[2], 
+      Password: password, 
       HostName: parts[3], 
       DBName: parts[4], 
       Origins: origins, 
@@ -161,7 +169,7 @@ func ParseEntryFile(filePath string) [][]string {
   }
 
   for _, entry := range entries {
-    splitEntries = append(splitEntries, strings.Split(entry, ENTRY_DELIMITER))
+    splitEntries = append(splitEntries, strings.Split(entry, entryDelimiter))
   }
 
   return splitEntries
@@ -172,7 +180,7 @@ func WriteEntryFile(filePath string, entries [][]string) error {
   lines := make([]string, len(entries))
 
   for i, entry := range entries {
-    lines[i] = strings.Join(entry, ENTRY_DELIMITER)
+    lines[i] = strings.Join(entry, entryDelimiter)
   } 
 
   data := []byte(strings.Join(lines, "\n") + "\n")
@@ -189,7 +197,7 @@ func AppendEntry(filePath string, entry []string) error {
   
   defer fd.Close()
 
-  _, err = fd.WriteString(strings.Join(entry, ENTRY_DELIMITER) + "\n")
+  _, err = fd.WriteString(strings.Join(entry, entryDelimiter) + "\n")
 
   return err
 }

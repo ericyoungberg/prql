@@ -18,7 +18,7 @@ import (
 
 
 const (
-  saltSeparator =  "|"
+  saltDelimiter string =  "|"
 )
 
 
@@ -35,13 +35,13 @@ func InsecureEncryptString(data string) string {
     log.Fatal("could not create salt for string encryption")  
   }
   cleanSalt := hex.EncodeToString(salt)
-  encrypted := Encrypt([]byte(data), cleanSalt)
+  encrypted := encrypt([]byte(data), cleanSalt)
 
-  return strings.Join([]string{cleanSalt, hex.EncodeToString(encrypted)}, saltSeparator)
+  return strings.Join([]string{cleanSalt, hex.EncodeToString(encrypted)}, saltDelimiter)
 }
 
 func InsecureDecryptString(data string) (string, error) {
-  pieces := strings.Split(data, saltSeparator)
+  pieces := strings.Split(data, saltDelimiter)
   salt, encryptedHex := pieces[0], pieces[1]
 
   encrypted, err := hex.DecodeString(encryptedHex)
@@ -49,11 +49,11 @@ func InsecureDecryptString(data string) (string, error) {
     return "", err 
   }
   
-  return string(Decrypt(encrypted, salt)), nil
+  return string(decrypt(encrypted, salt)), nil
 }
 
 
-func Encrypt(data []byte, passphrase string) []byte {
+func encrypt(data []byte, passphrase string) []byte {
   block, _ := aes.NewCipher([]byte(CreateHash(passphrase)))
   gcm, err := cipher.NewGCM(block)
   if err != nil {
@@ -71,7 +71,7 @@ func Encrypt(data []byte, passphrase string) []byte {
 }
 
 
-func Decrypt(data []byte, passphrase string) []byte {
+func decrypt(data []byte, passphrase string) []byte {
   key := []byte(CreateHash(passphrase))
   block, err := aes.NewCipher(key)
 
@@ -95,7 +95,7 @@ func Decrypt(data []byte, passphrase string) []byte {
 }
 
 
-func GetPassword(user string) (string, error) {
+func GetPasswordFromTerminal(user string) (string, error) {
   if user != "" {
     fmt.Print(user + "'s password: ")
   } else {

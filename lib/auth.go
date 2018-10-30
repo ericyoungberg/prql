@@ -1,11 +1,15 @@
 package lib
 
 import (
+  "io"
   "fmt"
   "strings"
   "syscall"
   "net/http"
+  "crypto/aes"
   "crypto/md5"
+  "crypto/rand"
+  "crypto/cipher"
   "encoding/hex"
 
   "golang.org/x/crypto/ssh/terminal"
@@ -13,10 +17,53 @@ import (
 )
 
 
-func CreateHash(seed string) string {
+func CreateHash(key string) string {
   hasher := md5.New()
-  hasher.Write([]byte(seed))
+  hasher.Write([]byte(key))
   return hex.EncodeToString(hasher.Sum(nil))
+}
+
+
+func Encrypt(data []byte, passphrase string) []byte {
+  block, _ := aes.NewCipher([]byte(CreateHash(passphrase)))
+  gcm, err := cipher.NewGCM(block)
+  if err != nil {
+    panic(err.Error()) 
+  }
+
+  nonce := make([]byte, gcm.NonceSize())
+
+  if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+    panic(err.Error())
+  }
+
+  cipherText := gcm.Seal(nonce, nonce, data, nil)
+
+  return cipherText
+}
+
+
+func Decrypt(data []byte, passphrase string) []byte {
+  key := []byte(CreateHash(passphrase))
+  block, err := aes.NewCipher(key)
+
+  if err != nil {
+    panic(err.Error()) 
+  }
+
+  gcm, err := cipher.NewGCM(block)
+  if err != nil {
+    panic(err.Error()) 
+  }
+
+  nonceSize := gcm.NonceSize()
+  nonce, cipherText := data[:nonceSize], data[nonceSize:]
+  plainText, err := gcm.Open(nil, nonce, cipherText, nil)
+  if err != nil {
+    panic(err.Error()) 
+  }
+
+  return plainText
 }
 
 
@@ -33,7 +80,6 @@ func GetPassword(user string) (string, error) {
   if err != nil {
     return "", err 
   }
-
 
   return strings.TrimSpace(string(input)), nil
 }

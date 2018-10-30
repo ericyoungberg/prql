@@ -17,10 +17,39 @@ import (
 )
 
 
+const (
+  saltSeparator =  "|"
+)
+
+
 func CreateHash(key string) string {
   hasher := md5.New()
   hasher.Write([]byte(key))
   return hex.EncodeToString(hasher.Sum(nil))
+}
+
+
+func InsecureEncryptString(data string) string {
+  salt, err := createSalt(4)
+  if err != nil {
+    log.Fatal("could not create salt for string encryption")  
+  }
+  cleanSalt := hex.EncodeToString(salt)
+  encrypted := Encrypt([]byte(data), cleanSalt)
+
+  return strings.Join([]string{cleanSalt, hex.EncodeToString(encrypted)}, saltSeparator)
+}
+
+func InsecureDecryptString(data string) (string, error) {
+  pieces := strings.Split(data, saltSeparator)
+  salt, encryptedHex := pieces[0], pieces[1]
+
+  encrypted, err := hex.DecodeString(encryptedHex)
+  if err != nil {
+    return "", err 
+  }
+  
+  return string(Decrypt(encrypted, salt)), nil
 }
 
 
@@ -31,10 +60,9 @@ func Encrypt(data []byte, passphrase string) []byte {
     panic(err.Error()) 
   }
 
-  nonce := make([]byte, gcm.NonceSize())
-
-  if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-    panic(err.Error())
+  nonce, err := createSalt(gcm.NonceSize())
+  if err != nil {
+    log.Fatal("could not create nonce for encryption")
   }
 
   cipherText := gcm.Seal(nonce, nonce, data, nil)
@@ -102,3 +130,14 @@ func SecretExec(fn func()) func(http.ResponseWriter, *http.Request) {
     }
   }
 }
+
+func createSalt(size int) ([]byte, error) {
+   salt := make([]byte, size)
+
+   if _, err := io.ReadFull(rand.Reader, salt); err != nil {
+    return nil, err
+  }
+
+  return salt, nil
+}
+

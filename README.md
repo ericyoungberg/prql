@@ -74,11 +74,11 @@ sudo prql tokens list
 
 ### Query your database
 
-To tell PrQL which credentials to use, we pass a token in a header called `X-PrQL-Token`. If you have a need to, 
+To tell PrQL which credentials to use, we pass a token in a header called `PrQL-Token`. If you have a need to, 
 you can change the name of the header by editing your _prql.toml_ config file.
 
 ```sh
-curl -H "X-PrQL-Token: f04e79dc8d1dd5453da438366c6162fb" \
+curl -H "PrQL-Token: f04e79dc8d1dd5453da438366c6162fb" \
         "localhost:1999?query=SELECT id, name FROM users WHERE login_attempts > 3"
 ```
 

@@ -50,7 +50,7 @@ func refreshServerPool(poolName string) {
   client := &http.Client{}
   res, err := client.Do(req)
   if err != nil {
-    log.Fatal(err) 
+    log.Fatal("Could not update prqld: no prqld instance running on this machine") 
   }
   res.Body.Close();
 

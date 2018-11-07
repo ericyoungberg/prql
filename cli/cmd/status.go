@@ -2,14 +2,14 @@ package cmd
 
 import (
   "github.com/spf13/cobra"
-  log "github.com/sirupsen/logrus"
+  "github.com/prql/prql/lib"
 )
 
 var statusCmd = &cobra.Command{
   Use: "status",
   Short: "Check the status of prqld",
   Run: func(cmd *cobra.Command, args []string) {
-    log.Info("status") 
+    lib.CheckServerStatus()
   },
 }
 

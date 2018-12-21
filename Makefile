@@ -10,17 +10,14 @@ PRQLD_DIR = prqld
 
 BUILD_CONTAINER = prql-builder
 
+# Set default compiler
+GO := go
+
 
 #-- Generate flags
-GITCOMMIT := $(shell git rev-parse --short HEAD)
-GITUNTRACKEDCHANGES := $(shell git status --porcelain --untracked-files=no)
-ifneq ($(GITUNTRACKEDCHANGES),)
-	GITCOMMIT := $(GITCOMMIT)-dirty
-endif
-
-CTIMEVAR = -X $(PKG)/version.GITCOMMIT=$(GITCOMMIT)
-GO_LDFLAGS = -ldflags "-w $(CTIMEVAR)"
-GO_LDFLAGS_STATIC = -ldflags "-w $(CTIMEVAR) -extldflags -static"
+VERSION := $(shell cat VERSION.txt)
+go_ld_flags = -ldflags "-w -X ${PKG}/$(1)/version.VERSION=${VERSION}"
+go_ld_flags_static = -ldflags "-w -X ${PKG}/$(1)/version.VERSION=${VERSION} -extldflags -static"
 
 GOOSARCHES = darwin/amd64 darwin/386 freebsd/amd64 freebsd/386 linux/arm linux/arm64 linux/amd64 linux/386 solaris/amd64 windows/amd64 windows/386
 
@@ -34,13 +31,17 @@ prql: test-prql build-prql install
 .PHONY: prqld
 prqld: test-prqld build-prqld install
 
+define build
+@${GO} build $(call go_ld_flags,${2}) -o ${BUILD_DIR}/${1} ./${2}
+endef
+
 build-prql: $(PRQL_DIR)/*.go
 		@echo "+ $@"
-		@go build ${GO_LDFLAGS} -o $(BUILD_DIR)/$(PRQL_BIN) ./$(PRQL_DIR)
+		$(call build,${PRQL_BIN},${PRQL_DIR})
 
 build-prqld: $(PRQLD_DIR)/*.go
 		@echo "+ $@"
-		@go build ${GO_LDFLAGS} -o $(BUILD_DIR)/$(PRQLD_BIN) ./$(PRQLD_DIR)
+		$(call build,${PRQLD_BIN},${PRQLD_DIR})
 
 .PHONY: with-docker
 with-docker:
@@ -90,3 +91,15 @@ clean:
 		@echo "+ $@"
 		rm -rf $(BUILD_DIR)
 		rm -rf $(GOPATH)/bin/$(PRQL_BIN) $(GOPATH)/bin/$(PRQLD_BIN)
+
+
+.PHONY: bump-version
+BUMP := patch
+bump-version: ## Bump the version in the version file. Set BUMP to [ patch | major | minor ].
+	@$(GO) get -u github.com/jessfraz/junk/sembump # update sembump tool
+	$(eval NEW_VERSION = $(shell sembump --kind $(BUMP) $(VERSION)))
+	@echo "Bumping VERSION.txt from $(VERSION) to $(NEW_VERSION)"
+	echo $(NEW_VERSION) > VERSION.txt
+	git add VERSION.txt
+	git commit -vsam "Bump version to $(NEW_VERSION)"
+	@echo "Run make tag to create and push the tag for new version $(NEW_VERSION)"

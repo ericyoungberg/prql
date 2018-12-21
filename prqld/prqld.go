@@ -5,6 +5,11 @@ import (
   "github.com/sirupsen/logrus"
 )
 
+// Populated by ldflags
+var (
+  VERSION string
+)
+
 func main() {
   config, err := lib.GetConfig()
   if err != nil {

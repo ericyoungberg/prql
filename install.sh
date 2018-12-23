@@ -19,7 +19,7 @@ PRQL_DIR=/var/lib/prql
 mkdir -p $PRQL_DIR
 touch "$PRQL_DIR/databases" "$PRQL_DIR/tokens"
 cp config/prql.toml "$PRQL_DIR/prql.toml"
-chmod 604 "$PRQL_DIR/*"
+chmod 604 $PRQL_DIR/*
 
 if which groupadd > /dev/null; then
   if ! grep -qE "^prql:" /etc/group; then

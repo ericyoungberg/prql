@@ -7,6 +7,7 @@ import (
   "encoding/json"
 
   "github.com/prql/prql/lib"
+  "github.com/prql/prql/prqld/version"
 )
 
 type postRequestBody struct {
@@ -25,6 +26,9 @@ func startServer(config *lib.Config) {
   mux.HandleFunc("/refresh-databases", refreshDatabases)
   mux.HandleFunc("/check", func(w http.ResponseWriter, req *http.Request) { 
     w.WriteHeader(http.StatusOK)
+  })
+  mux.HandleFunc("/version", func(w http.ResponseWriter, _ *http.Request) {
+    w.Write([]byte(version.VERSION)) 
   })
 
   go lib.CheckServerStatus()

@@ -3,6 +3,7 @@ package cmd
 import (
   "fmt"
   "net/http"
+  "io/ioutil"
 
   "github.com/spf13/cobra"
   "github.com/prql/prql/lib"
@@ -20,16 +21,16 @@ var versionCmd = &cobra.Command{
       log.Fatal(err) 
     }
 
-    var dVersion string
-    dVersionEndpoint := fmt.Sprintf("127.0.0.1:%d/version", config.Port)
+    dVersion := "Unavailable"
+    dVersionEndpoint := fmt.Sprintf("http://127.0.0.1:%d/version", config.Port)
     res, err := http.Get(dVersionEndpoint) 
-    if err != nil {
-      dVersion = "Unavailable" 
-    } else {
-      dVersion = ""
+    if err == nil {
+      defer res.Body.Close()
+      body, err := ioutil.ReadAll(res.Body)
+      if err == nil {
+        dVersion = string(body)
+      } 
     }
-
-    fmt.Println(res, dVersion)
 
     fmt.Printf(`PrQL Versions:
 

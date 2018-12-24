@@ -2,27 +2,21 @@ package main
 
 import (
   "fmt"
-  "time"
-  "net/url"
   "net/http"
   "io/ioutil"
   "encoding/json"
 
   "github.com/prql/prql/lib"
+  "github.com/prql/prql/prqld/version"
 )
 
 type postRequestBody struct {
   Query string
 }
 
-var (
-  host string
-)
-
 func startServer(config *lib.Config) {
   mux := http.NewServeMux()
   port := fmt.Sprintf(":%d", config.Port)
-  host = fmt.Sprintf("127.0.0.1%s", port)
 
   refreshTokens := lib.SecretExec(populateTokenPool)
   refreshDatabases := lib.SecretExec(populateDatabasePool)
@@ -33,42 +27,16 @@ func startServer(config *lib.Config) {
   mux.HandleFunc("/check", func(w http.ResponseWriter, req *http.Request) { 
     w.WriteHeader(http.StatusOK)
   })
+  mux.HandleFunc("/version", func(w http.ResponseWriter, _ *http.Request) {
+    w.Write([]byte(version.VERSION)) 
+  })
 
-  go checkServerStatus()
+  go lib.CheckServerStatus()
 
   log.Info("Starting server")
   http.ListenAndServe(port, mux)
 }
 
-func checkServerStatus() {
-  running := false
-
-  for i := 0; i < 10; i += 1 {
-    time.Sleep(time.Second) 
-
-    endpoint := url.URL{Scheme: "http", Host: host, Path: "check"}
-    res, err := http.Get(endpoint.String())
-    if err != nil {
-      log.Error(err)
-      continue
-    }
-
-    res.Body.Close()
-
-    if res.StatusCode != http.StatusOK {
-      continue 
-    }
-
-    running = true
-    break
-  } 
-
-  if running {
-    log.Info(fmt.Sprintf("Server listening at %s", host))
-  } else {
-    log.Panic(fmt.Sprintf("Cannot connect to server at %s.\nExiting...", host)) 
-  }
-}
 
 func handler(w http.ResponseWriter, r *http.Request) {
   config, err := lib.GetConfig()

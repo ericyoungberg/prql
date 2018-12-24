@@ -13,11 +13,9 @@ BUILD_CONTAINER = prql-builder
 # Set default compiler
 GO := go
 
-
 #-- Generate flags
-VERSION := $(shell cat VERSION.txt)
-go_ld_flags = -ldflags "-w -X ${PKG}/$(1)/version.VERSION=${VERSION}"
-go_ld_flags_static = -ldflags "-w -X ${PKG}/$(1)/version.VERSION=${VERSION} -extldflags -static"
+go_ld_flags = -ldflags "-w -X ${PKG}/$(1)/version.VERSION=$(shell cat $1/VERSION)"
+go_ld_flags_static = -ldflags "-w -X ${PKG}/$(1)/version.VERSION=$(shell cat $1/VERSION) -extldflags -static"
 
 GOOSARCHES = darwin/amd64 darwin/386 freebsd/amd64 freebsd/386 linux/arm linux/arm64 linux/amd64 linux/386 solaris/amd64 windows/amd64 windows/386
 
@@ -98,8 +96,8 @@ BUMP := patch
 bump-version: ## Bump the version in the version file. Set BUMP to [ patch | major | minor ].
 	@$(GO) get -u github.com/jessfraz/junk/sembump # update sembump tool
 	$(eval NEW_VERSION = $(shell sembump --kind $(BUMP) $(VERSION)))
-	@echo "Bumping VERSION.txt from $(VERSION) to $(NEW_VERSION)"
-	echo $(NEW_VERSION) > VERSION.txt
+	@echo "Bumping VERSION from $(VERSION) to $(NEW_VERSION)"
+	echo $(NEW_VERSION) > VERSION
 	git add VERSION.txt
 	git commit -vsam "Bump version to $(NEW_VERSION)"
 	@echo "Run make tag to create and push the tag for new version $(NEW_VERSION)"

@@ -89,15 +89,3 @@ clean:
 		@echo "+ $@"
 		rm -rf $(BUILD_DIR)
 		rm -rf $(GOPATH)/bin/$(PRQL_BIN) $(GOPATH)/bin/$(PRQLD_BIN)
-
-
-.PHONY: bump-version
-BUMP := patch
-bump-version: ## Bump the version in the version file. Set BUMP to [ patch | major | minor ].
-	@$(GO) get -u github.com/jessfraz/junk/sembump # update sembump tool
-	$(eval NEW_VERSION = $(shell sembump --kind $(BUMP) $(VERSION)))
-	@echo "Bumping VERSION from $(VERSION) to $(NEW_VERSION)"
-	echo $(NEW_VERSION) > VERSION
-	git add VERSION.txt
-	git commit -vsam "Bump version to $(NEW_VERSION)"
-	@echo "Run make tag to create and push the tag for new version $(NEW_VERSION)"

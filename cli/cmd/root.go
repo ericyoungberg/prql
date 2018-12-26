@@ -34,6 +34,8 @@ func refreshServerPool(poolName string) {
     log.Fatal(err) 
   }
 
+  updateErrMsg := "Could not refresh " + poolName + " pool in prqld"
+
   endpoint := url.URL{
     Scheme: "http", 
     Host: ("127.0.0.1:" + strconv.Itoa(config.Port)), 
@@ -50,11 +52,11 @@ func refreshServerPool(poolName string) {
   client := &http.Client{}
   res, err := client.Do(req)
   if err != nil {
-    log.Fatal(err) 
+    log.Fatal(updateErrMsg) 
   }
   res.Body.Close();
 
   if res.StatusCode != http.StatusOK {
-    log.Error("Could not refresh " + poolName + " pool in prqld")
+    log.Error(updateErrMsg)
   }
 }

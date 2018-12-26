@@ -25,6 +25,7 @@ type DatabaseParams struct{
 
 var (
   databaseParams DatabaseParams
+  supportedDatabases = [...]string{ "postgres", "mysql" }
 )
 
 
@@ -44,6 +45,18 @@ var newDatabaseCmd = &cobra.Command{
       log.Fatal("Missing driver [-d]")
     } else if databaseParams.port == 0 {
       log.Fatal("Missing port [-p]")
+    }
+
+    dbSupported := false
+    for _, supportedDatabase := range(supportedDatabases) {
+      if databaseParams.driver == supportedDatabase {
+        dbSupported = true 
+        break
+      }
+    }
+
+    if !dbSupported {
+      log.Fatal(databaseParams.driver + " is not a supported driver. Supported drivers: " + strings.Join(supportedDatabases[:], ", ")) 
     }
 
     entry := []string{databaseParams.hostName, databaseParams.driver, databaseParams.host, strconv.Itoa(databaseParams.port), strconv.FormatBool(databaseParams.ssl)}
@@ -107,7 +120,7 @@ var removeDatabaseCmd = &cobra.Command{
 
 func init() {
   newDatabaseCmd.Flags().StringVarP(&databaseParams.hostName, "name", "n", "", "Host name used to reference this server from the tokens")
-  newDatabaseCmd.Flags().StringVarP(&databaseParams.driver, "driver", "d", "", "Database type (postgresql, mysql)")
+  newDatabaseCmd.Flags().StringVarP(&databaseParams.driver, "driver", "d", "", "Database type (" + strings.Join(supportedDatabases[:], ", ") + ")")
   newDatabaseCmd.Flags().StringVarP(&databaseParams.host, "host", "H", "0.0.0.0", "Location of the database server")
   newDatabaseCmd.Flags().IntVarP(&databaseParams.port, "port", "p", 0, "Port of the database server")
 

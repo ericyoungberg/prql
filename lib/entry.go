@@ -183,7 +183,7 @@ func WriteEntryFile(filePath string, entries [][]string) error {
     lines[i] = strings.Join(entry, entryDelimiter)
   } 
 
-  data := []byte(strings.Join(lines, "\n") + "\n")
+  data := []byte(strings.Join(lines, "\n"))
 
   return ioutil.WriteFile(filePath, data, 0600)
 }

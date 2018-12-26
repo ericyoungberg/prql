@@ -72,6 +72,7 @@ func GetDatabaseEntries() map[string]DatabaseEntry {
     }
 
     databases[parts[0]] = DatabaseEntry{
+      HostName: parts[0],
       Driver: parts[1],
       Host: parts[2],
       Port: port,

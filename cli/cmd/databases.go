@@ -48,25 +48,27 @@ var newDatabaseCmd = &cobra.Command{
     }
 
     dbSupported := false
-    for _, supportedDatabase := range(supportedDatabases) {
+    for _, supportedDatabase := range supportedDatabases {
       if databaseParams.driver == supportedDatabase {
         dbSupported = true 
         break
       }
     }
-
     if !dbSupported {
       log.Fatal(databaseParams.driver + " is not a supported driver. Supported drivers: " + strings.Join(supportedDatabases[:], ", ")) 
     }
 
-    entry := []string{databaseParams.hostName, databaseParams.driver, databaseParams.host, strconv.Itoa(databaseParams.port), strconv.FormatBool(databaseParams.ssl)}
+    entries := lib.GetDatabaseEntries()
+    if _, nameUsed := entries[databaseParams.hostName]; nameUsed {
+      log.Fatal("The host name " + databaseParams.hostName + " has already been used")
+    }
 
+    entry := []string{databaseParams.hostName, databaseParams.driver, databaseParams.host, strconv.Itoa(databaseParams.port), strconv.FormatBool(databaseParams.ssl)}
     err := lib.AppendEntry(lib.Sys.DatabaseFile, entry)
     if err != nil {
       log.Error("Could not add database") 
       log.Fatal(err) 
     }
-
     fmt.Printf("Added database %s\n", databaseParams.hostName)
 
     refreshServerPool("databases")

@@ -43,7 +43,7 @@ type TokenEntry struct {
 *
 * name - A string used to identify the database server.
 *
-* driver -  The type of database server. eg: postgres, mysql, ...
+* driver -  The type of database server.
 * 
 * host - The address of the database server.
 * 

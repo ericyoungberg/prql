@@ -1,7 +1,10 @@
 package lib
 
 import (
+  "errors"
+
   "github.com/BurntSushi/toml"
+  "github.com/prql/prql/lib/defaults"
 )
 
 type headers struct {
@@ -9,23 +12,74 @@ type headers struct {
   Secret string
 }
 
-type Config struct {
+type configFile struct {
   Port    int
-  Secret  string
 
+  Host    string
+  Secret  string
   LogFile string
 
   Headers headers
 }
 
+type Config struct {
+  file configFile
+}
+
+func (c *Config) Port() int {
+  if c.file.Port != 0 {
+    return c.file.Port 
+  }
+
+  return defaults.Port
+}
+
+func (c *Config) Host() string {
+  if c.file.Host != "" {
+    return c.file.Host 
+  }
+
+  return defaults.Host
+}
+
+func (c *Config) Secret() (string, error) {
+  if c.file.Secret == "" {
+    return "", NoSecretErr
+  }
+
+  return c.file.Secret, nil
+}
+
+func (c *Config) LogFile() string {
+  if c.file.LogFile != "" {
+    return c.file.LogFile
+  }
+
+  return defaults.LogFile
+}
+
+func (c *Config) Headers() headers {
+  if c.file.Headers.Token == "" {
+    c.file.Headers.Token = defaults.HeadersToken 
+  }
+
+  if c.file.Headers.Secret == "" {
+    c.file.Headers.Secret = defaults.HeadersSecret
+  }
+  
+  return c.file.Headers
+}
+
 var (
   config Config
+
+  NoSecretErr = errors.New("No `Secret` value defined in prql.toml")
 )
 
 func loadConfig() (Config, error) {
   var loadedConfig Config
 
-  if _, err := toml.DecodeFile(Sys.ConfigFile, &loadedConfig); err != nil {
+  if _, err := toml.DecodeFile(Sys.ConfigFile, &loadedConfig.file); err != nil {
     return loadedConfig, err 
   }
 

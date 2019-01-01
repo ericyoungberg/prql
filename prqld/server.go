@@ -14,29 +14,44 @@ type postRequestBody struct {
   Query string
 }
 
-func startServer(config *lib.Config) {
-  mux := http.NewServeMux()
-  port := fmt.Sprintf(":%d", config.Port)
+type Server struct {
+  port int
+  host string
+}
+
+
+func (server *Server) StartFromConfig(config *lib.Config) {
+  server.host = config.Host()
+  server.port = config.Port()
+
+  server.Start()
+}
+
+func (server *Server) Start() {
+  log.Info("Starting server")
 
   refreshTokens := lib.SecretExec(populateTokenPool)
   refreshDatabases := lib.SecretExec(populateDatabasePool)
 
+  mux := http.NewServeMux()
   mux.HandleFunc("/", handler)
   mux.HandleFunc("/refresh-tokens", refreshTokens)
   mux.HandleFunc("/refresh-databases", refreshDatabases)
-  mux.HandleFunc("/check", func(w http.ResponseWriter, req *http.Request) { 
-    w.WriteHeader(http.StatusOK)
-  })
-  mux.HandleFunc("/version", func(w http.ResponseWriter, _ *http.Request) {
-    w.Write([]byte(version.VERSION)) 
-  })
+  mux.HandleFunc("/check", respondOK)
+  mux.HandleFunc("/version", respondVersion)
 
   go lib.CheckServerStatus()
 
-  log.Info("Starting server")
-  http.ListenAndServe(port, mux)
+  http.ListenAndServe(fmt.Sprintf(":%d", server.port), mux)
 }
 
+func respondOK(w http.ResponseWriter, req *http.Request) {
+  w.WriteHeader(http.StatusOK)
+}
+
+func respondVersion(w http.ResponseWriter, req *http.Request) {
+  w.Write([]byte(version.VERSION))
+}
 
 func handler(w http.ResponseWriter, r *http.Request) {
   config, err := lib.GetConfig()
@@ -46,7 +61,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
   var token string
 
-  token = r.Header.Get(config.Headers.Token)
+  token = r.Header.Get(config.Headers().Token)
   if token == "" {
     tokenParam := r.URL.Query()["token"]
 

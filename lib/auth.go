@@ -119,8 +119,8 @@ func SecretExec(fn func()) func(http.ResponseWriter, *http.Request) {
       log.Fatal(err) 
     }
 
-    clientSecret := r.Header.Get(config.Headers.Secret)
-    serverSecret := config.Secret
+    clientSecret := r.Header.Get(config.Headers().Secret)
+    serverSecret, _ := config.Secret()
 
     if clientSecret == serverSecret {
       fn()

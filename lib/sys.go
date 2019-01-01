@@ -36,7 +36,7 @@ func CheckServerStatus() {
     log.Fatal(err)  
   }
 
-  host := fmt.Sprintf("127.0.0.1:%d", config.Port)
+  host := fmt.Sprintf("%s:%d", config.Host(), config.Port())
   running := false
 
   i := 0

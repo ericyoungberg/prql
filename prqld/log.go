@@ -35,7 +35,7 @@ func setupLogger(config *lib.Config) {
 }
 
 func (logger *Logger) onSystem(fn func(...interface{}), args ...interface{}) {
-  logFile, err := os.OpenFile(logger.config.LogFile, os.O_WRONLY | os.O_CREATE | os.O_APPEND, 0644)
+  logFile, err := os.OpenFile(logger.config.LogFile(), os.O_WRONLY | os.O_CREATE | os.O_APPEND, 0644)
   if err != nil {
     return
   }

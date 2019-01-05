@@ -19,7 +19,6 @@ type Server struct {
   host string
 }
 
-
 func (server *Server) StartFromConfig(config *lib.Config) {
   server.host = config.Host()
   server.port = config.Port()
@@ -34,7 +33,7 @@ func (server *Server) Start() {
   refreshDatabases := lib.SecretExec(populateDatabasePool)
 
   mux := http.NewServeMux()
-  mux.HandleFunc("/", handler)
+  mux.HandleFunc("/", handleDataRequest)
   mux.HandleFunc("/refresh-tokens", refreshTokens)
   mux.HandleFunc("/refresh-databases", refreshDatabases)
   mux.HandleFunc("/check", respondOK)
@@ -53,24 +52,11 @@ func respondVersion(w http.ResponseWriter, req *http.Request) {
   w.Write([]byte(version.VERSION))
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-  config, err := lib.GetConfig()
-  if err != nil {
-    log.Fatal(err) 
-  }
-
-  var token string
-
-  token = r.Header.Get(config.Headers().Token)
+func handleDataRequest(w http.ResponseWriter, r *http.Request) {
+  token := readToken(r)
   if token == "" {
-    tokenParam := r.URL.Query()["token"]
-
-    if len(tokenParam) != 0 {
-      token = tokenParam[0] 
-    } else {
-      fail(w, "No token")
-      return
-    }
+    fail(w, "No token")
+    return
   }
 
   requestOrigin := r.Header.Get("Origin")
@@ -80,23 +66,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
   log.Info(fmt.Sprintf("Received request from %s using token %s", requestOrigin, token))
 
   tokenEntry := tokenPool[token]
-  
-  if tokenEntry.Origins != nil && len(tokenEntry.Origins) > 0 {
-    unauthorized := true
-    for _, authorized := range tokenEntry.Origins {
-      if authorized == requestOrigin {
-        unauthorized = false
-        break 
-      }
-    }
-
-    if unauthorized {
-      fail(w, fmt.Sprintf("Origin %s is not authorized to use token", requestOrigin)) 
-      return
-    }
+  if !authorizedOrigin(requestOrigin, tokenEntry) {
+    fail(w, fmt.Sprintf("Origin %s is not authorized to use token", requestOrigin)) 
+    return
   }
 
-  query := getQuery(r)
+  query := readQuery(r)
   if query == "" {
     fail(w, "No query")
     return
@@ -106,13 +81,50 @@ func handler(w http.ResponseWriter, r *http.Request) {
   data, err := performQuery(query, token)
   if err != nil {
     fail(w, err.Error())
+    return
   }
 
   json.NewEncoder(w).Encode(data)
 }
 
 
-func getQuery(r *http.Request) string {
+func readToken(r *http.Request) string {
+  config, err := lib.GetConfig()
+  if err != nil {
+    log.Error(err) 
+    return
+  }
+
+  token := r.Header.Get(config.Headers().Token)
+  if token == "" {
+    tokenParam := r.URL.Query()["token"]
+
+    if len(tokenParam) != 0 {
+      token = tokenParam[0] 
+    }
+  }
+
+  return token
+}
+
+
+func authorizedOrigin(origin string, entry lib.TokenEntry) bool {
+  unauthorized := true
+
+  if entry.Origins != nil && len(entry.Origins) > 0 {
+    for _, authorized := range entry.Origins {
+      if authorized == origin {
+        unauthorized = false
+        break 
+      }
+    }
+  }
+
+  return !unauthorized
+}
+
+
+func readQuery(r *http.Request) string {
   var query string
 
   if r.Method == "GET" {
@@ -133,11 +145,7 @@ func getQuery(r *http.Request) string {
 
     if len(bodyBytes) != 0 {
       err = json.Unmarshal(bodyBytes, &body)
-      if err != nil {
-        log.Panic(err) 
-      }
-
-      if body.Query != "" {
+      if err == nil && body.Query != "" {
         query = body.Query
       }
     }

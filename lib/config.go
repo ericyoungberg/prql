@@ -7,14 +7,6 @@ import (
   "github.com/prql/prql/lib/defaults"
 )
 
-
-var (
-  config Config
-
-  NoSecretErr = errors.New("No `Secret` value defined in prql.toml")
-)
-
-
 type headers struct {
   Token  string 
   Secret string
@@ -78,7 +70,6 @@ func (c *Config) Headers() headers {
   return c.file.Headers
 }
 
-
 func loadConfig() (Config, error) {
   var loadedConfig Config
 
@@ -93,9 +84,15 @@ func loadConfig() (Config, error) {
 func GetConfig() (Config, error) {
   var err error
 
-  if config == (Config{}) {
-    config, err = loadConfig()
+  if __PROVIDER == (Config{}) {
+    __PROVIDER, err = loadConfig()
   }
 
-  return config, err
+  return __PROVIDER, err
 }
+
+var (
+  __PROVIDER Config
+
+  NoSecretErr = errors.New("No `Secret` value defined in prql.toml")
+)

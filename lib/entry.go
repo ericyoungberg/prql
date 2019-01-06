@@ -14,7 +14,11 @@ const (
   entryDelimiter string = ":"
 )
 
+type Entry struct{}
+
 type DatabaseEntry struct {
+  Entry
+
   SSL bool
 
   Port int
@@ -25,6 +29,8 @@ type DatabaseEntry struct {
 }
 
 type TokenEntry struct {
+  Entry
+
   Living bool
 
   User     string

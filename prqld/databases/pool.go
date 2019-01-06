@@ -1,20 +1,20 @@
-package main
+package databases
 
 import (
-  "fmt"
   "strconv"
-  "errors"
   "database/sql"
-  "github.com/go-sql-driver/mysql"
 
   _ "github.com/lib/pq"
   "github.com/prql/prql/lib"
+  log "github.com/sirupsen/logrus"
+  "github.com/prql/prql/prqld/pools"
 )
 
 var (
   databasePool map[string]lib.DatabaseEntry
-  databaseConnections = make(map[string]*sql.DB)
+  databaseConnections = make(map[string]*Connection)
 )
+
 
 func populateDatabasePool() {
   databasePool = make(map[string]lib.DatabaseEntry)
@@ -44,68 +44,38 @@ func performQuery(query string, token string) (map[string]interface{}, error) {
 }
 
 
-
 /**
 * Private
 */
 
 func getDatabase(token string) *sql.DB {
-  var db *sql.DB
   var ok bool
+  pools := pool.GetPoolBroker()
 
-  tokenEntry, ok := tokenPool[token]
-  if ok != true {
+  tokenEntry := pools.Get("token", token)
+  if tokenEntry == nil {
     log.Panic("Invalid token") 
   }
 
-  databaseEntry, ok := databasePool[tokenEntry.HostName]
-  if ok != true {
+  databaseEntry := pool.Get("database", tokenEntry.HostName)
+  if datasebaseEntry == nil {
     log.Panic("Invalid database server name")
   }
 
-  db, ok = databaseConnections[token] 
+  db, ok := databaseConnections[token] 
   if ok != true {
-    dbConnString, err := generateDSN(&tokenEntry, &databaseEntry)
+    conn, err := NewConnection(&lib.TokenEntry(tokenEntry), &lib.DatabaseEntry(databaseEntry))
     if err != nil {
-      log.Error(err) 
-    } else {
-      db, err = sql.Open(databaseEntry.Driver, dbConnString)
-      if err != nil {
-        log.Error(err) 
-      }
-
-      databaseConnections[token] = db
+      log.Panic("Couldn't connect to database %s", databaseEntry.HostName) 
     }
+
+    databaseConnections[token] = conn
+    db = databaseConnections[token]
   }
 
-  return db
+  return db.connection
 }
 
-func generateDSN(token *lib.TokenEntry, database *lib.DatabaseEntry) (string, error) {
-  var dsn string = ""
-  var err error = nil
-
-  switch database.Driver {
-    case "mysql":
-      dsnConfig := mysql.NewConfig()
-      dsnConfig.User = token.User
-      dsnConfig.Passwd = token.Password
-      dsnConfig.Net = "tcp"
-      dsnConfig.Addr = fmt.Sprintf("%s:%d", database.Host, database.Port)
-      dsnConfig.DBName = token.DBName
-      dsn = dsnConfig.FormatDSN()
-
-    case "postgres":
-      dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%d sslmode=disable"
-      dbConnStringVars := []interface{}{token.User, token.Password, token.DBName, database.Host, database.Port}
-      dsn = fmt.Sprintf(dbConnStringFmt, dbConnStringVars...)
-
-    default:
-      err = errors.New(fmt.Sprintf("database driver %s does not exist", database.Driver))
-  }
-
-  return dsn, err
-}
 
 
 func structureData(rows *sql.Rows) (map[string]interface{}, error) {

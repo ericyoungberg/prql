@@ -3,6 +3,7 @@ package main
 import (
   "github.com/prql/prql/lib"
   "github.com/sirupsen/logrus"
+  "github.com/prql/prql/prqld/databases"
 )
 
 func main() {
@@ -13,10 +14,10 @@ func main() {
 
   setupLogger(&config)
 
-  populateTokenPool()
-  populateDatabasePool()
+  databases.populateTokenPool()
+  databases.populateDatabasePool()
 
-  defer closeDatabaseConnections()
+  defer databases.closeDatabaseConnections()
 
   server := &Server{}
   server.StartFromConfig(&config)

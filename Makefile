@@ -82,7 +82,7 @@ staticcheck:
 .PHONY: install
 install:
 		@echo "+ $@"
-		@cp $(BUILD_DIR)/* $(GOPATH)/bin
+		@cp $(BUILD_DIR)/* /usr/local/bin
 
 .PHONY: clean
 clean:

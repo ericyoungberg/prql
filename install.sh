@@ -8,8 +8,8 @@ set -e;
 
 # Install binaries
 
-cp build/prql /usr/bin/prql
-cp build/prqld /usr/bin/prqld
+cp build/prql /usr/local/bin/prql
+cp build/prqld /usr/local/bin/prqld
 
 
 # Setup the working directory

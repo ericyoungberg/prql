@@ -92,7 +92,7 @@ func readToken(r *http.Request) string {
   config, err := lib.GetConfig()
   if err != nil {
     log.Error(err) 
-    return
+    return ""
   }
 
   token := r.Header.Get(config.Headers().Token)

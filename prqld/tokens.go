@@ -1,13 +1,13 @@
 package main
 
 import (
-  "github.com/prql/prql/lib"
+  "github.com/prql/prql/lib/pools"
 )
 
 
-var tokenPool map[string]lib.TokenEntry
+var tokenPool map[string]pools.TokenEntry
 
 func populateTokenPool() {
-  tokenPool = make(map[string]lib.TokenEntry)
-  tokenPool = lib.GetTokenEntries()
+  tokenPool = make(map[string]pools.TokenEntry)
+  tokenPool = pools.GetTokenEntries()
 }

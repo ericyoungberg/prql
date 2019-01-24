@@ -1,4 +1,4 @@
-package lib
+package pools
 
 import (
   "os"
@@ -6,6 +6,7 @@ import (
   "strconv"
   "io/ioutil"
 
+  "github.com/prql/prql/lib"
   log "github.com/sirupsen/logrus"
 )
 
@@ -59,7 +60,7 @@ type TokenEntry struct{
 */
 func GetDatabaseEntries() map[string]DatabaseEntry {
   databases := make(map[string]DatabaseEntry) 
-  entries := ParseEntryFile(Sys.DatabaseFile)
+  entries := ParseEntryFile(lib.Sys.DatabaseFile)
 
   for i, parts := range entries {
     if len(parts) != 5 {
@@ -115,7 +116,7 @@ func GetDatabaseEntries() map[string]DatabaseEntry {
 
 func GetTokenEntries() map[string]TokenEntry {
   tokens := make(map[string]TokenEntry) 
-  entries := ParseEntryFile(Sys.TokenFile)
+  entries := ParseEntryFile(lib.Sys.TokenFile)
 
   for i, parts := range entries {
     if len(parts) != 7 {
@@ -142,7 +143,7 @@ func GetTokenEntries() map[string]TokenEntry {
       living = false 
     }
 
-    password, err := InsecureDecryptString(parts[2])
+    password, err := lib.InsecureDecryptString(parts[2])
     if err != nil {
       log.Error("Couldn't decrypt password at line " + strconv.Itoa(i + 1)) 
       continue

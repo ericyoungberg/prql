@@ -7,6 +7,7 @@ import (
   "encoding/json"
 
   "github.com/prql/prql/lib"
+  "github.com/prql/prql/lib/pools"
   "github.com/prql/prql/prqld/version"
 )
 
@@ -23,10 +24,10 @@ func (server *Server) StartFromConfig(config *lib.Config) {
   server.host = config.Host()
   server.port = config.Port()
 
-  server.Start()
+  server.start()
 }
 
-func (server *Server) Start() {
+func (server *Server) start() {
   log.Info("Starting server")
 
   refreshTokens := lib.SecretExec(populateTokenPool)
@@ -108,7 +109,7 @@ func readToken(r *http.Request) string {
 }
 
 
-func authorizedOrigin(origin string, entry lib.TokenEntry) bool {
+func authorizedOrigin(origin string, entry pools.TokenEntry) bool {
   unauthorized := true
 
   if entry.Origins != nil && len(entry.Origins) > 0 {

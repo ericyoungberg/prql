@@ -8,17 +8,17 @@ import (
   "github.com/go-sql-driver/mysql"
 
   _ "github.com/lib/pq"
-  "github.com/prql/prql/lib"
+  "github.com/prql/prql/lib/pools"
 )
 
 var (
-  databasePool map[string]lib.DatabaseEntry
+  databasePool map[string]pools.DatabaseEntry
   databaseConnections = make(map[string]*sql.DB)
 )
 
 func populateDatabasePool() {
-  databasePool = make(map[string]lib.DatabaseEntry)
-  databasePool = lib.GetDatabaseEntries()
+  databasePool = make(map[string]pools.DatabaseEntry)
+  databasePool = pools.GetDatabaseEntries()
 }
 
 
@@ -81,7 +81,7 @@ func getDatabase(token string) *sql.DB {
   return db
 }
 
-func generateDSN(token *lib.TokenEntry, database *lib.DatabaseEntry) (string, error) {
+func generateDSN(token *pools.TokenEntry, database *pools.DatabaseEntry) (string, error) {
   var dsn string = ""
   var err error = nil
 

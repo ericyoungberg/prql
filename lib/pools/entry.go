@@ -11,15 +11,7 @@ import (
 )
 
 
-const (
-  entryDelimiter string = ":"
-)
-
-type Entry struct{}
-
 type DatabaseEntry struct{
-  Entry
-
   SSL bool
 
   Port int
@@ -30,8 +22,6 @@ type DatabaseEntry struct{
 }
 
 type TokenEntry struct{
-  Entry 
-
   Living bool
 
   User     string
@@ -163,37 +153,7 @@ func GetTokenEntries() map[string]TokenEntry {
 }
 
 
-func ParseEntryFile(filePath string) [][]string {
-  var splitEntries [][]string
-
-  buf, err := ioutil.ReadFile(filePath)
-  if err != nil {
-    log.Fatal(err) 
-  }
-
-  entries := strings.Split(string(buf), "\n")
-  if entries[len(entries) - 1] == "" {
-    entries = entries[:len(entries) - 1] 
-  }
-
-  for _, entry := range entries {
-    splitEntries = append(splitEntries, strings.Split(entry, entryDelimiter))
-  }
-
-  return splitEntries
-}
-
-
 func WriteEntryFile(filePath string, entries [][]string) error {
-  lines := make([]string, len(entries))
-
-  for i, entry := range entries {
-    lines[i] = strings.Join(entry, entryDelimiter)
-  } 
-
-  data := []byte(strings.Join(lines, "\n"))
-
-  return ioutil.WriteFile(filePath, data, 0600)
 }
 
 

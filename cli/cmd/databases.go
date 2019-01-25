@@ -8,6 +8,7 @@ import (
 
   "github.com/spf13/cobra"
   "github.com/prql/prql/lib"
+  "github.com/prql/prql/lib/pools"
   log "github.com/sirupsen/logrus"
   "github.com/olekukonko/tablewriter"
 )
@@ -58,13 +59,13 @@ var newDatabaseCmd = &cobra.Command{
       log.Fatal(databaseParams.driver + " is not a supported driver. Supported drivers: " + strings.Join(supportedDatabases[:], ", ")) 
     }
 
-    entries := lib.GetDatabaseEntries()
+    entries := pools.GetDatabaseEntries()
     if _, nameUsed := entries[databaseParams.hostName]; nameUsed {
       log.Fatal("The host name " + databaseParams.hostName + " has already been used")
     }
 
     entry := []string{databaseParams.hostName, databaseParams.driver, databaseParams.host, strconv.Itoa(databaseParams.port), strconv.FormatBool(databaseParams.ssl)}
-    err := lib.AppendEntry(lib.Sys.DatabaseFile, entry)
+    err := pools.AppendEntry(lib.Sys.DatabaseFile, entry)
     if err != nil {
       log.Error("Could not add database") 
       log.Fatal(err) 
@@ -80,7 +81,7 @@ var listDatabasesCmd = &cobra.Command{
   Use: "list",
   Short: "List all available databases",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := lib.ParseEntryFile(lib.Sys.DatabaseFile)
+    entries := pools.ParseEntryFile(lib.Sys.DatabaseFile)
 
     if databaseParams.quiet {
       names := make([]string, len(entries)) 
@@ -105,10 +106,10 @@ var removeDatabaseCmd = &cobra.Command{
   Use: "remove [names]",
   Short: "Remove database location from system. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := lib.ParseEntryFile(lib.Sys.DatabaseFile)
+    entries := pools.ParseEntryFile(lib.Sys.DatabaseFile)
     entries = lib.RemoveByColumn(args, entries, 0)
 
-    err := lib.WriteEntryFile(lib.Sys.DatabaseFile, entries)
+    err := pools.WriteEntryFile(lib.Sys.DatabaseFile, entries)
     if err != nil {
       log.Error("Could not write changes to tokens file")
       log.Error(err)

@@ -1,19 +1,44 @@
 package pools
 
 import (
-  "os"
+  "fmt"
   "strings"
+  "io/ioutil"
+
+  log "github.com/sirupsen/logrus"
 )
 
-func AppendEntry(filePath string, entry []string) error { 
-  fd, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0600)
+func ParseEntryFile(filePath string) [][]string {
+  var splitEntries [][]string
+
+  buf, err := ioutil.ReadFile(filePath)
   if err != nil {
-    return err
+    log.Fatal(err) 
   }
-  
-  defer fd.Close()
 
-  _, err = fd.WriteString(strings.Join(entry, entryDelimiter) + "\n")
+  entries := strings.Split(string(buf), "\n")
+  if entries[len(entries) - 1] == "" {
+    entries = entries[:len(entries) - 1] 
+  }
 
-  return err
+  for _, entry := range entries {
+    splitEntries = append(splitEntries, strings.Split(entry, entryDelimiter))
+  }
+
+  return splitEntries
+}
+
+func removeByColumn(values []string, dataset [][]string, col int) [][]string {
+  for _, value := range values {
+    for i, row := range dataset {
+      if row[col] == value {
+        dataset = append(dataset[:i], dataset[i+1:]...)
+
+        fmt.Printf("Deleting %s\n", value) 
+        break
+      }
+    }
+  }
+
+  return dataset
 }

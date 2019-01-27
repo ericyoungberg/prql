@@ -30,23 +30,28 @@ func (p *pool) Save() error {
   return ioutil.WriteFile(p.FilePath, data, 0600)
 }
 
+func (p *pool) Remove(keys []string) {
+  p.records = removeByColumn(keys, p.records, 0)
+  p.build()
+}
+
+func (p *pool) AppendRecord(record []string) {
+  p.records = append(p.records, record)
+  p.build()
+}
+
 func (p *pool) Build() {
-  log.Fatal("pool.Build() must be overriden")
+  p.load()
+  p.build()
 }
 
 func (p *pool) load() {
-  buf, err := ioutil.ReadFile(p.FilePath)
-  if err != nil {
-    log.Fatal(err) 
-  }
-
-  entries := strings.Split(string(buf), "\n")
-  if entries[len(entries) - 1] == "" {
-    entries = entries[:len(entries) - 1] 
-  }
-
+  entries := ParseEntryFile(p.FilePath)
   p.records = make([][]string, len(entries))
-  for _, entry := range entries {
-    p.records = append(p.records, strings.Split(entry, entryDelimiter))
-  }
+  p.records = entries
 }
+
+func (p *pool) build() {
+  log.Fatal("pool.build() must be overriden")
+}
+

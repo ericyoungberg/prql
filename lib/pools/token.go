@@ -26,8 +26,7 @@ type TokenPool struct {
   Entries map[string]TokenEntry
 }
 
-func (p *TokenPool) Build() {
-  p.load()
+func (p *TokenPool) build() {
   tokens := make(map[string]TokenEntry) 
 
   for i, parts := range p.records {

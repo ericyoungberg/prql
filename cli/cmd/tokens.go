@@ -73,9 +73,18 @@ var newTokenCmd = &cobra.Command{
     }
     password = lib.InsecureEncryptString(password)
 
-    entry := []string{token, tokenParams.username, password, tokenParams.host, tokenParams.database, origins, strconv.FormatBool(tokenParams.living)}
+    pool := pools.NewTokenPool()
+    pool.AppendRecord([]string{
+      token, 
+      tokenParams.username, 
+      password, 
+      tokenParams.host, 
+      tokenParams.database, 
+      origins, 
+      strconv.FormatBool(tokenParams.living),
+    })
 
-    err = pools.AppendEntry(lib.Sys.TokenFile, entry)
+    err = pool.Save() 
     if err != nil {
       log.Fatal("Could not generate new token.") 
       log.Fatal(err) 
@@ -121,10 +130,10 @@ var removeTokenCmd = &cobra.Command{
   Use: "remove [tokens]",
   Short: "Remove token. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := pools.ParseEntryFile(lib.Sys.TokenFile)
-    entries = lib.RemoveByColumn(args, entries, 0)
+    pool := pools.NewTokenPool()
+    pool.Remove(args)
 
-    err := pools.WriteEntryFile(lib.Sys.TokenFile, entries)
+    err := pool.Save()
     if err != nil {
       log.Error("Could not write changes to tokens file")
       log.Error(err)

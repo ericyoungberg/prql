@@ -24,8 +24,7 @@ type DatabasePool struct {
   Entries map[string]DatabaseEntry
 }
 
-func (p *DatabasePool) Build() {
-  p.load()
+func (p *DatabasePool) build() {
   databases := make(map[string]DatabaseEntry) 
 
   for i, parts := range p.records {

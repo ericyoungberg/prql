@@ -48,6 +48,8 @@ var newDatabaseCmd = &cobra.Command{
       log.Fatal("Missing port [-p]")
     }
 
+    pool := pools.NewDatabasePool()
+
     dbSupported := false
     for _, supportedDatabase := range supportedDatabases {
       if databaseParams.driver == supportedDatabase {
@@ -59,13 +61,19 @@ var newDatabaseCmd = &cobra.Command{
       log.Fatal(databaseParams.driver + " is not a supported driver. Supported drivers: " + strings.Join(supportedDatabases[:], ", ")) 
     }
 
-    entries := pools.GetDatabaseEntries()
-    if _, nameUsed := entries[databaseParams.hostName]; nameUsed {
+    if _, nameUsed := pool.Entries[databaseParams.hostName]; nameUsed {
       log.Fatal("The host name " + databaseParams.hostName + " has already been used")
     }
 
-    entry := []string{databaseParams.hostName, databaseParams.driver, databaseParams.host, strconv.Itoa(databaseParams.port), strconv.FormatBool(databaseParams.ssl)}
-    err := pools.AppendEntry(lib.Sys.DatabaseFile, entry)
+    pool.AppendRecord([]string{
+      databaseParams.hostName, 
+      databaseParams.driver, 
+      databaseParams.host, 
+      strconv.Itoa(databaseParams.port), 
+      strconv.FormatBool(databaseParams.ssl),
+    })
+
+    err := pool.Save()
     if err != nil {
       log.Error("Could not add database") 
       log.Fatal(err) 
@@ -106,10 +114,10 @@ var removeDatabaseCmd = &cobra.Command{
   Use: "remove [names]",
   Short: "Remove database location from system. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := pools.ParseEntryFile(lib.Sys.DatabaseFile)
-    entries = lib.RemoveByColumn(args, entries, 0)
+    pool := pools.NewDatabasePool()
+    pool.Remove(args)
 
-    err := pools.WriteEntryFile(lib.Sys.DatabaseFile, entries)
+    err := pool.Save()
     if err != nil {
       log.Error("Could not write changes to tokens file")
       log.Error(err)

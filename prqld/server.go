@@ -119,6 +119,8 @@ func authorizedOrigin(origin string, entry pools.TokenEntry) bool {
         break 
       }
     }
+  } else {
+    unauthorized = false 
   }
 
   return !unauthorized

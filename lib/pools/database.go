@@ -56,10 +56,11 @@ func (p *DatabasePool) build() {
 }
 
 func NewDatabasePool() *DatabasePool {
-  pool := &DatabasePool{
+  databasePool := &DatabasePool{
     pool: pool{FilePath: lib.Sys.DatabaseFile},
   }
-  pool.Build()
+  databasePool.child = databasePool
+  databasePool.Build()
   
-  return pool
+  return databasePool
 }

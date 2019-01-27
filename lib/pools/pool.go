@@ -11,8 +11,12 @@ const (
   entryDelimiter string = ":"
 )
 
+type Pool interface {
+  build()
+}
 
 type pool struct {
+  child Pool
   FilePath string
 
   records [][]string
@@ -32,17 +36,17 @@ func (p *pool) Save() error {
 
 func (p *pool) Remove(keys []string) {
   p.records = removeByColumn(keys, p.records, 0)
-  p.build()
+  p.child.build()
 }
 
 func (p *pool) AppendRecord(record []string) {
   p.records = append(p.records, record)
-  p.build()
+  p.child.build()
 }
 
 func (p *pool) Build() {
   p.load()
-  p.build()
+  p.child.build()
 }
 
 func (p *pool) load() {

@@ -74,10 +74,11 @@ func (p *TokenPool) build() {
 }
 
 func NewTokenPool() *TokenPool {
-  pool := &TokenPool{ 
+  tokenPool := &TokenPool{ 
     pool: pool{FilePath: lib.Sys.TokenFile},
   }
-  pool.Build()
+  tokenPool.child = tokenPool
+  tokenPool.Build()
 
-  return pool
+  return tokenPool
 }

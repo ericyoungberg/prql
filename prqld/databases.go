@@ -12,14 +12,9 @@ import (
 )
 
 var (
-  databasePool map[string]pools.DatabaseEntry
+  databasePool = pools.NewDatabasePool()
   databaseConnections = make(map[string]*sql.DB)
 )
-
-func populateDatabasePool() {
-  databasePool = make(map[string]pools.DatabaseEntry)
-  databasePool = pools.GetDatabaseEntries()
-}
 
 
 func closeDatabaseConnections() {
@@ -53,12 +48,12 @@ func getDatabase(token string) *sql.DB {
   var db *sql.DB
   var ok bool
 
-  tokenEntry, ok := tokenPool[token]
+  tokenEntry, ok := tokenPool.Entries[token]
   if ok != true {
     log.Panic("Invalid token") 
   }
 
-  databaseEntry, ok := databasePool[tokenEntry.HostName]
+  databaseEntry, ok := databasePool.Entries[tokenEntry.HostName]
   if ok != true {
     log.Panic("Invalid database server name")
   }

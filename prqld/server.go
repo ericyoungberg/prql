@@ -30,8 +30,8 @@ func (server *Server) StartFromConfig(config *lib.Config) {
 func (server *Server) start() {
   log.Info("Starting server")
 
-  refreshTokens := lib.SecretExec(populateTokenPool)
-  refreshDatabases := lib.SecretExec(populateDatabasePool)
+  refreshTokens := lib.SecretExec(tokenPool.Build)
+  refreshDatabases := lib.SecretExec(databasePool.Build)
 
   mux := http.NewServeMux()
   mux.HandleFunc("/", handleDataRequest)
@@ -66,7 +66,7 @@ func handleDataRequest(w http.ResponseWriter, r *http.Request) {
   }
   log.Info(fmt.Sprintf("Received request from %s using token %s", requestOrigin, token))
 
-  tokenEntry := tokenPool[token]
+  tokenEntry := tokenPool.Entries[token]
   if !authorizedOrigin(requestOrigin, tokenEntry) {
     fail(w, fmt.Sprintf("Origin %s is not authorized to use token", requestOrigin)) 
     return

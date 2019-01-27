@@ -5,9 +5,4 @@ import (
 )
 
 
-var tokenPool map[string]pools.TokenEntry
-
-func populateTokenPool() {
-  tokenPool = make(map[string]pools.TokenEntry)
-  tokenPool = pools.GetTokenEntries()
-}
+var tokenPool = pools.NewTokenPool()

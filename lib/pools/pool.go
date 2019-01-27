@@ -1,18 +1,41 @@
 package pools
 
+import (
+  "strings"
+  "io/ioutil"
+
+  log "github.com/sirupsen/logrus"
+)
 
 const (
   entryDelimiter string = ":"
 )
 
 
-type Pool struct {
-  Entries [][]string
+type pool struct {
   FilePath string
+
+  records [][]string
 }
 
-func (p *Pool) Load() {
-  buf, err := ioutil.ReadFile(filePath)
+func (p *pool) Save() error {
+  lines := make([]string, len(p.records))
+
+  for i, entry := range p.records {
+    lines[i] = strings.Join(entry, entryDelimiter)
+  } 
+
+  data := []byte(strings.Join(lines, "\n"))
+
+  return ioutil.WriteFile(p.FilePath, data, 0600)
+}
+
+func (p *pool) Build() {
+  log.Fatal("pool.Build() must be overriden")
+}
+
+func (p *pool) load() {
+  buf, err := ioutil.ReadFile(p.FilePath)
   if err != nil {
     log.Fatal(err) 
   }
@@ -22,30 +45,8 @@ func (p *Pool) Load() {
     entries = entries[:len(entries) - 1] 
   }
 
+  p.records = make([][]string, len(entries))
   for _, entry := range entries {
-    p.Entries = append(p.Entries, strings.Split(entry, entryDelimiter))
+    p.records = append(p.records, strings.Split(entry, entryDelimiter))
   }
-}
-
-func (p *Pool) Save() {
-  lines := make([]string, len(p.Entries))
-
-  for i, entry := range p.Entries {
-    lines[i] = strings.Join(entry, entryDelimiter)
-  } 
-
-  data := []byte(strings.Join(lines, "\n"))
-
-  return ioutil.WriteFile(p.FilePath, data, 0600)
-}
-
-func (p *Pool) Refresh() {
-
-}
-
-func NewPool(filePath string) *Pool {
-  pool := &Pool{ FilePath: filePath }
-  pool.Load()
-
-  return pool
 }

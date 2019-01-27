@@ -13,9 +13,6 @@ func main() {
 
   setupLogger(&config)
 
-  populateTokenPool()
-  populateDatabasePool()
-
   defer closeDatabaseConnections()
 
   server := &Server{}

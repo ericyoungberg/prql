@@ -15,6 +15,7 @@ type headers struct {
 type configFile struct {
   Port    int
 
+  ContentType string
   Host    string
   Secret  string
   LogFile string
@@ -24,6 +25,14 @@ type configFile struct {
 
 type Config struct {
   file configFile
+}
+
+func (c *Config) ContentType() string {
+  if c.file.ContentType != "" {
+    return c.file.ContentType 
+  }
+
+  return defaults.ContentType
 }
 
 func (c *Config) Headers() headers {

@@ -99,6 +99,8 @@ func handleDataRequest(w http.ResponseWriter, r *http.Request) {
     return
   }
 
+  config, _ := lib.GetConfig()
+  w.Header().Set("Content-Type", config.ContentType())
   json.NewEncoder(w).Encode(data)
 }
 

@@ -1,6 +1,8 @@
 package defaults
 
 const (
+  ContentType = "application/json;charset=utf-8"
+
   Host = "127.0.0.1"
   Port = 1993
   Protocol = "http"

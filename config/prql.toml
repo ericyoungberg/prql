@@ -5,6 +5,8 @@ Secret = "kb6v12jvlgb1k23v6kb9qfb123kbfhDQ34TK"
 
 LogFile = "/var/lib/prql/access.log"
 
+ContentType = "application/json;charset=utf-8"
+
 [Headers]
 Token = "PrQL-Token"
 Secret = "PrQL-Secret"

@@ -55,7 +55,17 @@ func (p *DatabasePool) build() {
   p.Entries = databases
 }
 
-func NewDatabasePool() *DatabasePool {
+func GetDatabasePool() *DatabasePool {
+  if __DB_INIT {
+    __DB_PROVIDER = loadDatabasePool() 
+  }
+
+  return __DB_PROVIDER
+}
+
+func loadDatabasePool() *DatabasePool {
+  __DB_INIT = false
+
   databasePool := &DatabasePool{
     pool: pool{FilePath: lib.Sys.DatabaseFile},
   }
@@ -64,3 +74,8 @@ func NewDatabasePool() *DatabasePool {
   
   return databasePool
 }
+
+var (
+  __DB_PROVIDER *DatabasePool
+  __DB_INIT bool = true
+)

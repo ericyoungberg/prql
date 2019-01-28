@@ -70,7 +70,7 @@ var newDatabaseCmd = &cobra.Command{
       log.Fatal("Missing port [-p]")
     }
 
-    pool := pools.NewDatabasePool()
+    pool := pools.GetDatabasePool()
 
     dbSupported := false
     for _, supportedDatabase := range supportedDatabases {
@@ -110,7 +110,7 @@ var removeDatabaseCmd = &cobra.Command{
   Use: "remove [names]",
   Short: "Remove database location from system. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    pool := pools.NewDatabasePool()
+    pool := pools.GetDatabasePool()
     pool.Remove(args)
 
     err := pool.Save()

@@ -73,7 +73,17 @@ func (p *TokenPool) build() {
   p.Entries = tokens
 }
 
-func NewTokenPool() *TokenPool {
+func GetTokenPool() *TokenPool {
+  if __TOKEN_INIT {
+    __TOKEN_PROVIDER = loadTokenPool() 
+  }
+
+  return __TOKEN_PROVIDER
+}
+
+func loadTokenPool() *TokenPool {
+  __TOKEN_INIT = false
+
   tokenPool := &TokenPool{ 
     pool: pool{FilePath: lib.Sys.TokenFile},
   }
@@ -82,3 +92,8 @@ func NewTokenPool() *TokenPool {
 
   return tokenPool
 }
+
+var (
+  __TOKEN_PROVIDER *TokenPool
+  __TOKEN_INIT bool = true
+)

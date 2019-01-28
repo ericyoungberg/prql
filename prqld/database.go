@@ -12,10 +12,7 @@ import (
   "github.com/prql/prql/lib/pools"
 )
 
-var (
-  databasePool = pools.NewDatabasePool()
-  databaseConnections = make(map[string]*sql.DB)
-)
+var databaseConnections = make(map[string]*sql.DB)
 
 func closeDatabaseConnections() {
   for k, v := range databaseConnections {
@@ -54,12 +51,12 @@ func getDatabase(token string) *sql.DB {
   var db *sql.DB
   var ok bool
 
-  tokenEntry, ok := tokenPool.Entries[token]
+  tokenEntry, ok := pools.GetTokenPool().Entries[token]
   if ok != true {
     log.Panic("Invalid token") 
   }
 
-  databaseEntry, ok := databasePool.Entries[tokenEntry.HostName]
+  databaseEntry, ok := pools.GetDatabasePool().Entries[tokenEntry.HostName]
   if ok != true {
     log.Panic("Invalid database server name")
   }

@@ -74,11 +74,11 @@ func (c *Config) Secret() (string, error) {
 func GetConfig() (Config, error) {
   var err error
 
-  if __PROVIDER == (Config{}) {
-    __PROVIDER, err = loadConfig()
+  if __CONF_PROVIDER == (Config{}) {
+    __CONF_PROVIDER, err = loadConfig()
   }
 
-  return __PROVIDER, err
+  return __CONF_PROVIDER, err
 }
 
 func loadConfig() (Config, error) {
@@ -92,7 +92,7 @@ func loadConfig() (Config, error) {
 }
 
 var (
-  __PROVIDER Config
+  __CONF_PROVIDER Config
 
   NoSecretErr = errors.New("No `Secret` value defined in prql.toml")
 )

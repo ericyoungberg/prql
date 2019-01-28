@@ -96,7 +96,7 @@ var newTokenCmd = &cobra.Command{
     }
     password = lib.InsecureEncryptString(password)
 
-    pool := pools.NewTokenPool()
+    pool := pools.GetTokenPool()
     pool.AppendRecord([]string{
       token, 
       tokenParams.username, 
@@ -124,7 +124,7 @@ var removeTokenCmd = &cobra.Command{
   Use: "remove [tokens]",
   Short: "Remove token. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    pool := pools.NewTokenPool()
+    pool := pools.GetTokenPool()
     pool.Remove(args)
 
     err := pool.Save()

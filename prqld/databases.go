@@ -17,7 +17,6 @@ var (
   databaseConnections = make(map[string]*sql.DB)
 )
 
-
 func closeDatabaseConnections() {
   for k, v := range databaseConnections {
     v.Close()  
@@ -25,25 +24,31 @@ func closeDatabaseConnections() {
   }
 }
 
+func generateDSN(token *pools.TokenEntry, database *pools.DatabaseEntry) (string, error) {
+  var dsn string = ""
+  var err error = nil
 
-func performQuery(query string, token string) (map[string]interface{}, error) {
-  db := getDatabase(token)
-  
-  rows, err := db.Query(query)
-  if err != nil {
-    return nil, err
+  switch database.Driver {
+    case "mysql":
+      dsnConfig := mysql.NewConfig()
+      dsnConfig.User = token.User
+      dsnConfig.Passwd = token.Password
+      dsnConfig.Net = "tcp"
+      dsnConfig.Addr = fmt.Sprintf("%s:%d", database.Host, database.Port)
+      dsnConfig.DBName = token.DBName
+      dsn = dsnConfig.FormatDSN()
+
+    case "postgres":
+      dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%d sslmode=disable"
+      dbConnStringVars := []interface{}{token.User, token.Password, token.DBName, database.Host, database.Port}
+      dsn = fmt.Sprintf(dbConnStringFmt, dbConnStringVars...)
+
+    default:
+      err = errors.New(fmt.Sprintf("database driver %s does not exist", database.Driver))
   }
 
-  defer rows.Close()
-
-  return structureData(rows)
+  return dsn, err
 }
-
-
-
-/**
-* Private
-*/
 
 func getDatabase(token string) *sql.DB {
   var db *sql.DB
@@ -77,32 +82,18 @@ func getDatabase(token string) *sql.DB {
   return db
 }
 
-func generateDSN(token *pools.TokenEntry, database *pools.DatabaseEntry) (string, error) {
-  var dsn string = ""
-  var err error = nil
-
-  switch database.Driver {
-    case "mysql":
-      dsnConfig := mysql.NewConfig()
-      dsnConfig.User = token.User
-      dsnConfig.Passwd = token.Password
-      dsnConfig.Net = "tcp"
-      dsnConfig.Addr = fmt.Sprintf("%s:%d", database.Host, database.Port)
-      dsnConfig.DBName = token.DBName
-      dsn = dsnConfig.FormatDSN()
-
-    case "postgres":
-      dbConnStringFmt := "user=%s password=%s dbname=%s host=%s port=%d sslmode=disable"
-      dbConnStringVars := []interface{}{token.User, token.Password, token.DBName, database.Host, database.Port}
-      dsn = fmt.Sprintf(dbConnStringFmt, dbConnStringVars...)
-
-    default:
-      err = errors.New(fmt.Sprintf("database driver %s does not exist", database.Driver))
+func performQuery(query string, token string) (map[string]interface{}, error) {
+  db := getDatabase(token)
+  
+  rows, err := db.Query(query)
+  if err != nil {
+    return nil, err
   }
 
-  return dsn, err
-}
+  defer rows.Close()
 
+  return structureData(rows)
+}
 
 func structureData(rows *sql.Rows) (map[string]interface{}, error) {
   var structured = make(map[string]interface{})

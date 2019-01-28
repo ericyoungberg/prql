@@ -45,12 +45,26 @@ func (server *Server) start() {
   http.ListenAndServe(fmt.Sprintf(":%d", server.port), mux)
 }
 
-func respondOK(w http.ResponseWriter, req *http.Request) {
-  w.WriteHeader(http.StatusOK)
+func authorizedOrigin(origin string, entry pools.TokenEntry) bool {
+  unauthorized := true
+
+  if entry.Origins != nil && len(entry.Origins) > 0 {
+    for _, authorized := range entry.Origins {
+      if authorized == origin {
+        unauthorized = false
+        break 
+      }
+    }
+  } else {
+    unauthorized = false 
+  }
+
+  return !unauthorized
 }
 
-func respondVersion(w http.ResponseWriter, req *http.Request) {
-  w.Write([]byte(version.VERSION))
+func fail(w http.ResponseWriter, message string) {
+  log.Error(message)
+  http.Error(w, message, http.StatusBadRequest)
 }
 
 func handleDataRequest(w http.ResponseWriter, r *http.Request) {
@@ -88,45 +102,6 @@ func handleDataRequest(w http.ResponseWriter, r *http.Request) {
   json.NewEncoder(w).Encode(data)
 }
 
-
-func readToken(r *http.Request) string {
-  config, err := lib.GetConfig()
-  if err != nil {
-    log.Error(err) 
-    return ""
-  }
-
-  token := r.Header.Get(config.Headers().Token)
-  if token == "" {
-    tokenParam := r.URL.Query()["token"]
-
-    if len(tokenParam) != 0 {
-      token = tokenParam[0] 
-    }
-  }
-
-  return token
-}
-
-
-func authorizedOrigin(origin string, entry pools.TokenEntry) bool {
-  unauthorized := true
-
-  if entry.Origins != nil && len(entry.Origins) > 0 {
-    for _, authorized := range entry.Origins {
-      if authorized == origin {
-        unauthorized = false
-        break 
-      }
-    }
-  } else {
-    unauthorized = false 
-  }
-
-  return !unauthorized
-}
-
-
 func readQuery(r *http.Request) string {
   var query string
 
@@ -157,7 +132,29 @@ func readQuery(r *http.Request) string {
   return query
 } 
 
-func fail(w http.ResponseWriter, message string) {
-  log.Error(message)
-  http.Error(w, message, http.StatusBadRequest)
+func readToken(r *http.Request) string {
+  config, err := lib.GetConfig()
+  if err != nil {
+    log.Error(err) 
+    return ""
+  }
+
+  token := r.Header.Get(config.Headers().Token)
+  if token == "" {
+    tokenParam := r.URL.Query()["token"]
+
+    if len(tokenParam) != 0 {
+      token = tokenParam[0] 
+    }
+  }
+
+  return token
+}
+
+func respondOK(w http.ResponseWriter, req *http.Request) {
+  w.WriteHeader(http.StatusOK)
+}
+
+func respondVersion(w http.ResponseWriter, req *http.Request) {
+  w.Write([]byte(version.VERSION))
 }

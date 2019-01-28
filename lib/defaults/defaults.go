@@ -1,13 +1,13 @@
 package defaults
 
 const (
-  Protocol = "http"
   Host = "127.0.0.1"
   Port = 1993
+  Protocol = "http"
 
   LibDir = "/var/lib/prql"
   LogFile = "access.log"
 
-  HeadersToken = "PrQL-Token"
   HeadersSecret = "PrQL-Secret"
+  HeadersToken = "PrQL-Token"
 )

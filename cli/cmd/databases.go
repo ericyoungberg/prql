@@ -29,12 +29,34 @@ var (
   supportedDatabases = [...]string{ "postgres", "mysql" }
 )
 
-
 var databasesCmd = &cobra.Command{
   Use: "databases",
   Short: "Add, delete, or view all databases added to the system",
 }
 
+var listDatabasesCmd = &cobra.Command{
+  Use: "list",
+  Short: "List all available databases",
+  Run: func(cmd *cobra.Command, args []string) {
+    entries := pools.ParseEntryFile(lib.Sys.DatabaseFile)
+
+    if databaseParams.quiet {
+      names := make([]string, len(entries)) 
+
+      for i, entry := range entries {
+        names[i] = entry[0]
+      }
+
+      fmt.Println(strings.Join(names, " "))
+    } else {
+      table := tablewriter.NewWriter(os.Stdout)
+      table.SetHeader([]string{"Host Name", "Driver", "Host", "Port", "SSL"})
+
+      table.AppendBulk(entries)
+      table.Render()
+    }
+  },
+}
 
 var newDatabaseCmd = &cobra.Command{
   Use: "new",
@@ -84,32 +106,6 @@ var newDatabaseCmd = &cobra.Command{
   },
 }
 
-
-var listDatabasesCmd = &cobra.Command{
-  Use: "list",
-  Short: "List all available databases",
-  Run: func(cmd *cobra.Command, args []string) {
-    entries := pools.ParseEntryFile(lib.Sys.DatabaseFile)
-
-    if databaseParams.quiet {
-      names := make([]string, len(entries)) 
-
-      for i, entry := range entries {
-        names[i] = entry[0]
-      }
-
-      fmt.Println(strings.Join(names, " "))
-    } else {
-      table := tablewriter.NewWriter(os.Stdout)
-      table.SetHeader([]string{"Host Name", "Driver", "Host", "Port", "SSL"})
-
-      table.AppendBulk(entries)
-      table.Render()
-    }
-  },
-}
-
-
 var removeDatabaseCmd = &cobra.Command{
   Use: "remove [names]",
   Short: "Remove database location from system. This action is permanent.",
@@ -127,7 +123,6 @@ var removeDatabaseCmd = &cobra.Command{
     refreshServerPool("databases")
   },
 }
-
 
 func init() {
   newDatabaseCmd.Flags().StringVarP(&databaseParams.hostName, "name", "n", "", "Host name used to reference this server from the tokens")

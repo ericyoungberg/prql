@@ -5,9 +5,10 @@ import (
   "strconv"
   "errors"
   "database/sql"
-  "github.com/go-sql-driver/mysql"
 
   _ "github.com/lib/pq"
+  "github.com/go-sql-driver/mysql"
+
   "github.com/prql/prql/lib/pools"
 )
 

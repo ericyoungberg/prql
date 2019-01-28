@@ -26,38 +26,6 @@ type Config struct {
   file configFile
 }
 
-func (c *Config) Port() int {
-  if c.file.Port != 0 {
-    return c.file.Port 
-  }
-
-  return defaults.Port
-}
-
-func (c *Config) Host() string {
-  if c.file.Host != "" {
-    return c.file.Host 
-  }
-
-  return defaults.Host
-}
-
-func (c *Config) Secret() (string, error) {
-  if c.file.Secret == "" {
-    return "", NoSecretErr
-  }
-
-  return c.file.Secret, nil
-}
-
-func (c *Config) LogFile() string {
-  if c.file.LogFile != "" {
-    return c.file.LogFile
-  }
-
-  return defaults.LogFile
-}
-
 func (c *Config) Headers() headers {
   if c.file.Headers.Token == "" {
     c.file.Headers.Token = defaults.HeadersToken 
@@ -70,15 +38,36 @@ func (c *Config) Headers() headers {
   return c.file.Headers
 }
 
-
-func loadConfig() (Config, error) {
-  var loadedConfig Config
-
-  if _, err := toml.DecodeFile(Sys.ConfigFile, &loadedConfig.file); err != nil {
-    return loadedConfig, err 
+func (c *Config) Host() string {
+  if c.file.Host != "" {
+    return c.file.Host 
   }
 
-  return loadedConfig, nil
+  return defaults.Host
+}
+
+func (c *Config) LogFile() string {
+  if c.file.LogFile != "" {
+    return c.file.LogFile
+  }
+
+  return defaults.LogFile
+}
+
+func (c *Config) Port() int {
+  if c.file.Port != 0 {
+    return c.file.Port 
+  }
+
+  return defaults.Port
+}
+
+func (c *Config) Secret() (string, error) {
+  if c.file.Secret == "" {
+    return "", NoSecretErr
+  }
+
+  return c.file.Secret, nil
 }
 
 
@@ -90,6 +79,16 @@ func GetConfig() (Config, error) {
   }
 
   return __PROVIDER, err
+}
+
+func loadConfig() (Config, error) {
+  var loadedConfig Config
+
+  if _, err := toml.DecodeFile(Sys.ConfigFile, &loadedConfig.file); err != nil {
+    return loadedConfig, err 
+  }
+
+  return loadedConfig, nil
 }
 
 var (

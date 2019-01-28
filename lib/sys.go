@@ -10,16 +10,15 @@ import (
   log "github.com/sirupsen/logrus"
 )
 
+const filesPath string = "/var/lib/prql"
+
+
 type sys struct {
   ConfigFile   string
   TokenFile    string
   DatabaseFile string
   FilesPath    string
 }
-
-const (
-  filesPath string = "/var/lib/prql"
-)
 
 var (
   Sys sys = sys{
@@ -72,5 +71,3 @@ func CheckServerStatus() {
     log.Fatal(fmt.Sprintf("Cannot connect to server at %s.\nExiting...", host)) 
   }
 }
-
-

@@ -7,9 +7,7 @@ import (
   log "github.com/sirupsen/logrus"
 )
 
-const (
-  entryDelimiter string = ":"
-)
+const entryDelimiter string = ":"
 
 type Pool interface {
   build()
@@ -20,6 +18,21 @@ type pool struct {
   FilePath string
 
   records [][]string
+}
+
+func (p *pool) AppendRecord(record []string) {
+  p.records = append(p.records, record)
+  p.child.build()
+}
+
+func (p *pool) Build() {
+  p.load()
+  p.child.build()
+}
+
+func (p *pool) Remove(keys []string) {
+  p.records = removeByColumn(keys, p.records, 0)
+  p.child.build()
 }
 
 func (p *pool) Save() error {
@@ -34,19 +47,8 @@ func (p *pool) Save() error {
   return ioutil.WriteFile(p.FilePath, data, 0600)
 }
 
-func (p *pool) Remove(keys []string) {
-  p.records = removeByColumn(keys, p.records, 0)
-  p.child.build()
-}
-
-func (p *pool) AppendRecord(record []string) {
-  p.records = append(p.records, record)
-  p.child.build()
-}
-
-func (p *pool) Build() {
-  p.load()
-  p.child.build()
+func (p *pool) build() {
+  log.Fatal("pool.build() must be overriden")
 }
 
 func (p *pool) load() {
@@ -54,8 +56,3 @@ func (p *pool) load() {
   p.records = make([][]string, len(entries))
   p.records = entries
 }
-
-func (p *pool) build() {
-  log.Fatal("pool.build() must be overriden")
-}
-

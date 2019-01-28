@@ -14,7 +14,7 @@ type Pool interface {
 }
 
 type pool struct {
-  child Pool
+  self Pool
   FilePath string
 
   records [][]string
@@ -22,17 +22,17 @@ type pool struct {
 
 func (p *pool) AppendRecord(record []string) {
   p.records = append(p.records, record)
-  p.child.build()
+  p.self.build()
 }
 
 func (p *pool) Build() {
   p.load()
-  p.child.build()
+  p.self.build()
 }
 
 func (p *pool) Remove(keys []string) {
   p.records = removeByColumn(keys, p.records, 0)
-  p.child.build()
+  p.self.build()
 }
 
 func (p *pool) Save() error {

@@ -69,7 +69,7 @@ func loadDatabasePool() *DatabasePool {
   databasePool := &DatabasePool{
     pool: pool{FilePath: lib.Sys.DatabaseFile},
   }
-  databasePool.child = databasePool
+  databasePool.self = databasePool
   databasePool.Build()
   
   return databasePool

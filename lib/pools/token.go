@@ -87,7 +87,7 @@ func loadTokenPool() *TokenPool {
   tokenPool := &TokenPool{ 
     pool: pool{FilePath: lib.Sys.TokenFile},
   }
-  tokenPool.child = tokenPool
+  tokenPool.self = tokenPool
   tokenPool.Build()
 
   return tokenPool

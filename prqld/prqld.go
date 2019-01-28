@@ -5,11 +5,6 @@ import (
   "github.com/sirupsen/logrus"
 )
 
-// Populated by ldflags
-var (
-  VERSION string
-)
-
 func main() {
   config, err := lib.GetConfig()
   if err != nil {
@@ -18,10 +13,8 @@ func main() {
 
   setupLogger(&config)
 
-  populateTokenPool()
-  populateDatabasePool()
-
   defer closeDatabaseConnections()
 
-  startServer(&config)
+  server := &Server{}
+  server.StartFromConfig(&config)
 }

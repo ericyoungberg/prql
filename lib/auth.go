@@ -16,10 +16,7 @@ import (
   log "github.com/sirupsen/logrus"
 )
 
-
-const (
-  saltDelimiter string =  "|"
-)
+const saltDelimiter string =  "|"
 
 
 func CreateHash(key string) string {
@@ -28,16 +25,21 @@ func CreateHash(key string) string {
   return hex.EncodeToString(hasher.Sum(nil))
 }
 
-
-func InsecureEncryptString(data string) string {
-  salt, err := createSalt(4)
-  if err != nil {
-    log.Fatal("could not create salt for string encryption")  
+func GetPasswordFromTerminal(user string) (string, error) {
+  if user != "" {
+    fmt.Print(user + "'s password: ")
+  } else {
+    fmt.Print("Password: ") 
   }
-  cleanSalt := hex.EncodeToString(salt)
-  encrypted := encrypt([]byte(data), cleanSalt)
 
-  return strings.Join([]string{cleanSalt, hex.EncodeToString(encrypted)}, saltDelimiter)
+  defer fmt.Print("\n")
+
+  input, err := terminal.ReadPassword(int(syscall.Stdin))
+  if err != nil {
+    return "", err 
+  }
+
+  return strings.TrimSpace(string(input)), nil
 }
 
 func InsecureDecryptString(data string) (string, error) {
@@ -52,24 +54,46 @@ func InsecureDecryptString(data string) (string, error) {
   return string(decrypt(encrypted, salt)), nil
 }
 
-
-func encrypt(data []byte, passphrase string) []byte {
-  block, _ := aes.NewCipher([]byte(CreateHash(passphrase)))
-  gcm, err := cipher.NewGCM(block)
+func InsecureEncryptString(data string) string {
+  salt, err := createSalt(4)
   if err != nil {
-    panic(err.Error()) 
+    log.Fatal("could not create salt for string encryption")  
   }
+  cleanSalt := hex.EncodeToString(salt)
+  encrypted := encrypt([]byte(data), cleanSalt)
 
-  nonce, err := createSalt(gcm.NonceSize())
-  if err != nil {
-    log.Fatal("could not create nonce for encryption")
-  }
-
-  cipherText := gcm.Seal(nonce, nonce, data, nil)
-
-  return cipherText
+  return strings.Join([]string{cleanSalt, hex.EncodeToString(encrypted)}, saltDelimiter)
 }
 
+
+func SecretExec(fn func()) func(http.ResponseWriter, *http.Request) {
+  return func(w http.ResponseWriter, r *http.Request) {
+    config, err := GetConfig()
+    if err != nil {
+      log.Fatal(err) 
+    }
+
+    clientSecret := r.Header.Get(config.Headers().Secret)
+    serverSecret, _ := config.Secret()
+
+    if clientSecret == serverSecret {
+      fn()
+    } else {
+      errorMessage := "command is only available to local prql"
+      http.Error(w, errorMessage, http.StatusBadRequest)
+    }
+  }
+}
+
+func createSalt(size int) ([]byte, error) {
+   salt := make([]byte, size)
+
+   if _, err := io.ReadFull(rand.Reader, salt); err != nil {
+    return nil, err
+  }
+
+  return salt, nil
+}
 
 func decrypt(data []byte, passphrase string) []byte {
   key := []byte(CreateHash(passphrase))
@@ -94,50 +118,19 @@ func decrypt(data []byte, passphrase string) []byte {
   return plainText
 }
 
-
-func GetPasswordFromTerminal(user string) (string, error) {
-  if user != "" {
-    fmt.Print(user + "'s password: ")
-  } else {
-    fmt.Print("Password: ") 
-  }
-
-  defer fmt.Print("\n")
-
-  input, err := terminal.ReadPassword(int(syscall.Stdin))
+func encrypt(data []byte, passphrase string) []byte {
+  block, _ := aes.NewCipher([]byte(CreateHash(passphrase)))
+  gcm, err := cipher.NewGCM(block)
   if err != nil {
-    return "", err 
+    panic(err.Error()) 
   }
 
-  return strings.TrimSpace(string(input)), nil
-}
-
-func SecretExec(fn func()) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
-    config, err := GetConfig()
-    if err != nil {
-      log.Fatal(err) 
-    }
-
-    clientSecret := r.Header.Get(config.Headers.Secret)
-    serverSecret := config.Secret
-
-    if clientSecret == serverSecret {
-      fn()
-    } else {
-      errorMessage := "command is only available to local prql"
-      http.Error(w, errorMessage, http.StatusBadRequest)
-    }
-  }
-}
-
-func createSalt(size int) ([]byte, error) {
-   salt := make([]byte, size)
-
-   if _, err := io.ReadFull(rand.Reader, salt); err != nil {
-    return nil, err
+  nonce, err := createSalt(gcm.NonceSize())
+  if err != nil {
+    log.Fatal("could not create nonce for encryption")
   }
 
-  return salt, nil
-}
+  cipherText := gcm.Seal(nonce, nonce, data, nil)
 
+  return cipherText
+}

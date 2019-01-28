@@ -38,7 +38,7 @@ func refreshServerPool(poolName string) {
 
   endpoint := url.URL{
     Scheme: "http", 
-    Host: ("127.0.0.1:" + strconv.Itoa(config.Port)), 
+    Host: ("127.0.0.1:" + strconv.Itoa(config.Port())), 
     Path: ("refresh-" + poolName),
   }
 
@@ -47,7 +47,12 @@ func refreshServerPool(poolName string) {
     log.Fatal(err)
   }
 
-  req.Header.Set(config.Headers.Secret, config.Secret)
+  systemSecret, err := config.Secret()
+  if err != nil {
+    log.Fatal("You must define a secret in prql.toml") 
+  }
+
+  req.Header.Set(config.Headers().Secret, systemSecret)
 
   client := &http.Client{}
   res, err := client.Do(req)

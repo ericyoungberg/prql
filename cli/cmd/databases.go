@@ -8,6 +8,7 @@ import (
 
   "github.com/spf13/cobra"
   "github.com/prql/prql/lib"
+  "github.com/prql/prql/lib/pools"
   log "github.com/sirupsen/logrus"
   "github.com/olekukonko/tablewriter"
 )
@@ -28,59 +29,16 @@ var (
   supportedDatabases = [...]string{ "postgres", "mysql" }
 )
 
-
 var databasesCmd = &cobra.Command{
   Use: "databases",
   Short: "Add, delete, or view all databases added to the system",
 }
 
-
-var newDatabaseCmd = &cobra.Command{
-  Use: "new",
-  Short: "Add a database to be referenced by the system",
-  Run: func(cmd *cobra.Command, args []string) {
-    if databaseParams.hostName == "" {
-      log.Fatal("Missing host name [-n]")
-    } else if databaseParams.driver == "" {
-      log.Fatal("Missing driver [-d]")
-    } else if databaseParams.port == 0 {
-      log.Fatal("Missing port [-p]")
-    }
-
-    dbSupported := false
-    for _, supportedDatabase := range supportedDatabases {
-      if databaseParams.driver == supportedDatabase {
-        dbSupported = true 
-        break
-      }
-    }
-    if !dbSupported {
-      log.Fatal(databaseParams.driver + " is not a supported driver. Supported drivers: " + strings.Join(supportedDatabases[:], ", ")) 
-    }
-
-    entries := lib.GetDatabaseEntries()
-    if _, nameUsed := entries[databaseParams.hostName]; nameUsed {
-      log.Fatal("The host name " + databaseParams.hostName + " has already been used")
-    }
-
-    entry := []string{databaseParams.hostName, databaseParams.driver, databaseParams.host, strconv.Itoa(databaseParams.port), strconv.FormatBool(databaseParams.ssl)}
-    err := lib.AppendEntry(lib.Sys.DatabaseFile, entry)
-    if err != nil {
-      log.Error("Could not add database") 
-      log.Fatal(err) 
-    }
-    fmt.Printf("Added database %s\n", databaseParams.hostName)
-
-    refreshServerPool("databases")
-  },
-}
-
-
 var listDatabasesCmd = &cobra.Command{
   Use: "list",
   Short: "List all available databases",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := lib.ParseEntryFile(lib.Sys.DatabaseFile)
+    entries := pools.ParseEntryFile(lib.Sys.DatabaseFile)
 
     if databaseParams.quiet {
       names := make([]string, len(entries)) 
@@ -100,15 +58,62 @@ var listDatabasesCmd = &cobra.Command{
   },
 }
 
+var newDatabaseCmd = &cobra.Command{
+  Use: "new",
+  Short: "Add a database to be referenced by the system",
+  Run: func(cmd *cobra.Command, args []string) {
+    if databaseParams.hostName == "" {
+      log.Fatal("Missing host name [-n]")
+    } else if databaseParams.driver == "" {
+      log.Fatal("Missing driver [-d]")
+    } else if databaseParams.port == 0 {
+      log.Fatal("Missing port [-p]")
+    }
+
+    pool := pools.GetDatabasePool()
+
+    dbSupported := false
+    for _, supportedDatabase := range supportedDatabases {
+      if databaseParams.driver == supportedDatabase {
+        dbSupported = true 
+        break
+      }
+    }
+    if !dbSupported {
+      log.Fatal(databaseParams.driver + " is not a supported driver. Supported drivers: " + strings.Join(supportedDatabases[:], ", ")) 
+    }
+
+    if _, nameUsed := pool.Entries[databaseParams.hostName]; nameUsed {
+      log.Fatal("The host name " + databaseParams.hostName + " has already been used")
+    }
+
+    pool.AppendRecord([]string{
+      databaseParams.hostName, 
+      databaseParams.driver, 
+      databaseParams.host, 
+      strconv.Itoa(databaseParams.port), 
+      strconv.FormatBool(databaseParams.ssl),
+    })
+
+    err := pool.Save()
+    if err != nil {
+      log.Error("Could not add database") 
+      log.Fatal(err) 
+    }
+    fmt.Printf("Added database %s\n", databaseParams.hostName)
+
+    refreshServerPool("databases")
+  },
+}
 
 var removeDatabaseCmd = &cobra.Command{
   Use: "remove [names]",
   Short: "Remove database location from system. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := lib.ParseEntryFile(lib.Sys.DatabaseFile)
-    entries = lib.RemoveByColumn(args, entries, 0)
+    pool := pools.GetDatabasePool()
+    pool.Remove(args)
 
-    err := lib.WriteEntryFile(lib.Sys.DatabaseFile, entries)
+    err := pool.Save()
     if err != nil {
       log.Error("Could not write changes to tokens file")
       log.Error(err)
@@ -118,7 +123,6 @@ var removeDatabaseCmd = &cobra.Command{
     refreshServerPool("databases")
   },
 }
-
 
 func init() {
   newDatabaseCmd.Flags().StringVarP(&databaseParams.hostName, "name", "n", "", "Host name used to reference this server from the tokens")

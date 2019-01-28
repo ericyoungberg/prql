@@ -5,22 +5,14 @@ import (
   "strconv"
   "errors"
   "database/sql"
-  "github.com/go-sql-driver/mysql"
 
   _ "github.com/lib/pq"
-  "github.com/prql/prql/lib"
+  "github.com/go-sql-driver/mysql"
+
+  "github.com/prql/prql/lib/pools"
 )
 
-var (
-  databasePool map[string]lib.DatabaseEntry
-  databaseConnections = make(map[string]*sql.DB)
-)
-
-func populateDatabasePool() {
-  databasePool = make(map[string]lib.DatabaseEntry)
-  databasePool = lib.GetDatabaseEntries()
-}
-
+var databaseConnections = make(map[string]*sql.DB)
 
 func closeDatabaseConnections() {
   for k, v := range databaseConnections {
@@ -29,59 +21,7 @@ func closeDatabaseConnections() {
   }
 }
 
-
-func performQuery(query string, token string) (map[string]interface{}, error) {
-  db := getDatabase(token)
-  
-  rows, err := db.Query(query)
-  if err != nil {
-    return nil, err
-  }
-
-  defer rows.Close()
-
-  return structureData(rows)
-}
-
-
-
-/**
-* Private
-*/
-
-func getDatabase(token string) *sql.DB {
-  var db *sql.DB
-  var ok bool
-
-  tokenEntry, ok := tokenPool[token]
-  if ok != true {
-    log.Panic("Invalid token") 
-  }
-
-  databaseEntry, ok := databasePool[tokenEntry.HostName]
-  if ok != true {
-    log.Panic("Invalid database server name")
-  }
-
-  db, ok = databaseConnections[token] 
-  if ok != true {
-    dbConnString, err := generateDSN(&tokenEntry, &databaseEntry)
-    if err != nil {
-      log.Error(err) 
-    } else {
-      db, err = sql.Open(databaseEntry.Driver, dbConnString)
-      if err != nil {
-        log.Error(err) 
-      }
-
-      databaseConnections[token] = db
-    }
-  }
-
-  return db
-}
-
-func generateDSN(token *lib.TokenEntry, database *lib.DatabaseEntry) (string, error) {
+func generateDSN(token *pools.TokenEntry, database *pools.DatabaseEntry) (string, error) {
   var dsn string = ""
   var err error = nil
 
@@ -107,6 +47,50 @@ func generateDSN(token *lib.TokenEntry, database *lib.DatabaseEntry) (string, er
   return dsn, err
 }
 
+func getDatabase(token string) *sql.DB {
+  var db *sql.DB
+  var ok bool
+
+  tokenEntry, ok := pools.GetTokenPool().Entries[token]
+  if ok != true {
+    log.Panic("Invalid token") 
+  }
+
+  databaseEntry, ok := pools.GetDatabasePool().Entries[tokenEntry.HostName]
+  if ok != true {
+    log.Panic("Invalid database server name")
+  }
+
+  db, ok = databaseConnections[token] 
+  if ok != true {
+    dbConnString, err := generateDSN(&tokenEntry, &databaseEntry)
+    if err != nil {
+      log.Error(err) 
+    } else {
+      db, err = sql.Open(databaseEntry.Driver, dbConnString)
+      if err != nil {
+        log.Error(err) 
+      }
+
+      databaseConnections[token] = db
+    }
+  }
+
+  return db
+}
+
+func performQuery(query string, token string) (map[string]interface{}, error) {
+  db := getDatabase(token)
+  
+  rows, err := db.Query(query)
+  if err != nil {
+    return nil, err
+  }
+
+  defer rows.Close()
+
+  return structureData(rows)
+}
 
 func structureData(rows *sql.Rows) (map[string]interface{}, error) {
   var structured = make(map[string]interface{})

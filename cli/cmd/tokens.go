@@ -9,6 +9,7 @@ import (
 
   "github.com/spf13/cobra"
   "github.com/prql/prql/lib"
+  "github.com/prql/prql/lib/pools"
   log "github.com/sirupsen/logrus"
   "github.com/olekukonko/tablewriter"
 )
@@ -24,16 +25,39 @@ type TokenParams struct{
   origins  string
 }
 
-var (
-  tokenParams TokenParams
-)
-
+var tokenParams TokenParams
 
 var tokensCmd = &cobra.Command{
   Use: "tokens",
   Short: "Generate, delete, or view all PrQL tokens",
 }
 
+var listTokensCmd = &cobra.Command{
+  Use: "list",
+  Short: "List all available tokens",
+  Run: func(cmd *cobra.Command, args []string) {
+    entries := pools.ParseEntryFile(lib.Sys.TokenFile)
+
+    if tokenParams.quiet {
+      tokens := make([]string, len(entries))
+
+      for i, entry := range entries {
+        tokens[i] = entry[0]
+      }
+
+      fmt.Println(strings.Join(tokens, " "))
+    } else {
+      table := tablewriter.NewWriter(os.Stdout)
+      table.SetHeader([]string{"Token", "Username", "Host Name", "Database", "Origins", "Living"})
+
+      for _, entry := range entries {
+        table.Append(append(entry[:2], entry[3:]...))
+      }
+
+      table.Render()
+    }
+  },
+}
 
 var newTokenCmd = &cobra.Command{
   Use: "new",
@@ -72,9 +96,18 @@ var newTokenCmd = &cobra.Command{
     }
     password = lib.InsecureEncryptString(password)
 
-    entry := []string{token, tokenParams.username, password, tokenParams.host, tokenParams.database, origins, strconv.FormatBool(tokenParams.living)}
+    pool := pools.GetTokenPool()
+    pool.AppendRecord([]string{
+      token, 
+      tokenParams.username, 
+      password, 
+      tokenParams.host, 
+      tokenParams.database, 
+      origins, 
+      strconv.FormatBool(tokenParams.living),
+    })
 
-    err = lib.AppendEntry(lib.Sys.TokenFile, entry)
+    err = pool.Save() 
     if err != nil {
       log.Fatal("Could not generate new token.") 
       log.Fatal(err) 
@@ -87,43 +120,14 @@ var newTokenCmd = &cobra.Command{
   },
 }
 
-
-var listTokensCmd = &cobra.Command{
-  Use: "list",
-  Short: "List all available tokens",
-  Run: func(cmd *cobra.Command, args []string) {
-    entries := lib.ParseEntryFile(lib.Sys.TokenFile)
-
-    if tokenParams.quiet {
-      tokens := make([]string, len(entries))
-
-      for i, entry := range entries {
-        tokens[i] = entry[0]
-      }
-
-      fmt.Println(strings.Join(tokens, " "))
-    } else {
-      table := tablewriter.NewWriter(os.Stdout)
-      table.SetHeader([]string{"Token", "Username", "Host Name", "Database", "Origins", "Living"})
-
-      for _, entry := range entries {
-        table.Append(append(entry[:2], entry[3:]...))
-      }
-
-      table.Render()
-    }
-  },
-}
-
-
 var removeTokenCmd = &cobra.Command{
   Use: "remove [tokens]",
   Short: "Remove token. This action is permanent.",
   Run: func(cmd *cobra.Command, args []string) {
-    entries := lib.ParseEntryFile(lib.Sys.TokenFile)
-    entries = lib.RemoveByColumn(args, entries, 0)
+    pool := pools.GetTokenPool()
+    pool.Remove(args)
 
-    err := lib.WriteEntryFile(lib.Sys.TokenFile, entries)
+    err := pool.Save()
     if err != nil {
       log.Error("Could not write changes to tokens file")
       log.Error(err)
@@ -132,7 +136,6 @@ var removeTokenCmd = &cobra.Command{
     refreshServerPool("tokens")
   },
 }
-
 
 func init() {
   newTokenCmd.Flags().StringVarP(&tokenParams.username, "user", "u", "", "Database user associated with the new token")

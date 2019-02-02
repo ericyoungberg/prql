@@ -65,7 +65,6 @@ func InsecureEncryptString(data string) string {
   return strings.Join([]string{cleanSalt, hex.EncodeToString(encrypted)}, saltDelimiter)
 }
 
-
 func SecretExec(fn func()) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
     config, err := GetConfig()

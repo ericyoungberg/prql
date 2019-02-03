@@ -84,16 +84,16 @@ func GetConfig() (Config, error) {
   var err error
 
   if __CONF_PROVIDER == (Config{}) {
-    __CONF_PROVIDER, err = loadConfig()
+    __CONF_PROVIDER, err = loadConfig(Sys.ConfigFile)
   }
 
   return __CONF_PROVIDER, err
 }
 
-func loadConfig() (Config, error) {
+func loadConfig(filePath string) (Config, error) {
   var loadedConfig Config
 
-  if _, err := toml.DecodeFile(Sys.ConfigFile, &loadedConfig.file); err != nil {
+  if _, err := toml.DecodeFile(filePath, &loadedConfig.file); err != nil {
     return loadedConfig, err 
   }
 

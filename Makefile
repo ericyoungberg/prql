@@ -67,12 +67,12 @@ static:
 .PHONY: test-prql
 test-prql:
 		@echo "+ $@"
-		@echo "No tests exist for prql"
+		$(GO) test ./lib ./cli
 
 .PHONY: test-prqld
 test-prqld:
 		@echo "+ $@"
-		@echo "No tests exist for prqld"
+		${GO} test ./lib ./prqld
 
 .PHONY: staticcheck
 staticcheck:

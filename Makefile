@@ -21,7 +21,7 @@ GOOSARCHES = darwin/amd64 darwin/386 freebsd/amd64 freebsd/386 linux/arm linux/a
 
 
 #-- Build the world
-all: clean build-prql build-prqld staticcheck install
+all: clean test-prql build-prql test-prqld build-prqld staticcheck install
 
 .PHONY: prql
 prql: test-prql build-prql install

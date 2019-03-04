@@ -19,6 +19,7 @@ type TokenParams struct{
   quiet  bool
   living bool
 
+  tag      string
   username string
   host     string
   database string
@@ -48,10 +49,10 @@ var listTokensCmd = &cobra.Command{
       fmt.Println(strings.Join(tokens, " "))
     } else {
       table := tablewriter.NewWriter(os.Stdout)
-      table.SetHeader([]string{"Token", "Username", "Host Name", "Database", "Origins", "Living"})
+      table.SetHeader([]string{"Token", "Tag", "Username", "Host Name", "Database", "Origins", "Living"})
 
       for _, entry := range entries {
-        table.Append(append(entry[:2], entry[3:]...))
+        table.Append(append(entry[:3], entry[4:]...))
       }
 
       table.Render()
@@ -99,6 +100,7 @@ var newTokenCmd = &cobra.Command{
     pool := pools.GetTokenPool()
     pool.AppendRecord([]string{
       token, 
+      tokenParams.tag,
       tokenParams.username, 
       password, 
       tokenParams.host, 
@@ -138,13 +140,14 @@ var removeTokenCmd = &cobra.Command{
 }
 
 func init() {
-  newTokenCmd.Flags().StringVarP(&tokenParams.username, "user", "u", "", "Database user associated with the new token")
+  newTokenCmd.Flags().StringVarP(&tokenParams.tag, "tag", "t", "", "Tag to describe the role of the token.")
+  newTokenCmd.Flags().StringVarP(&tokenParams.username, "user", "u", "", "Database user associated with the new token.")
   newTokenCmd.Flags().StringVarP(&tokenParams.host, "host", "H", "", "Database host associated with the new token. Must be a valid database host name defined using the databases command.")
   newTokenCmd.Flags().StringVarP(&tokenParams.database, "database", "d", "", "Database associated with the new token.")
   newTokenCmd.Flags().StringVarP(&tokenParams.origins, "origins", "o", "", "Comma-delimited list of origins that are allowed to use the token.")
   newTokenCmd.Flags().BoolVarP(&tokenParams.living, "living", "l", false, "Keep connection alive, regardless of token usage frequency.")
 
-  listTokensCmd.Flags().BoolVarP(&tokenParams.quiet, "quiet", "q", false, "Only display tokens")
+  listTokensCmd.Flags().BoolVarP(&tokenParams.quiet, "quiet", "q", false, "Only display tokens.")
 
   tokensCmd.AddCommand(newTokenCmd)
   tokensCmd.AddCommand(listTokensCmd)

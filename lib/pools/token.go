@@ -62,7 +62,7 @@ func (p *TokenPool) build() {
     }
 
     tokens[parts[0]] = TokenEntry{
-      Tag: parts[1]
+      Tag: parts[1],
       User: parts[2], 
       Password: password, 
       HostName: parts[4], 

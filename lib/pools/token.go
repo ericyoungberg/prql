@@ -10,14 +10,15 @@ import (
 
 
 type TokenEntry struct{
-  Living bool
-
+  Tag      string
   User     string
   Password string
   HostName string
   DBName   string
 
   Origins []string
+
+  Living bool
 }
 
 type TokenPool struct {
@@ -30,12 +31,12 @@ func (p *TokenPool) build() {
   tokens := make(map[string]TokenEntry) 
 
   for i, parts := range p.records {
-    if len(parts) != 7 {
+    if len(parts) != 8 {
       log.Error("Invalid token entry at line " + strconv.Itoa(i + 1)) 
       continue
     }
 
-    originEntries := strings.Split(parts[5], ",")
+    originEntries := strings.Split(parts[6], ",")
     origins := make([]string, len(originEntries))
     originIndex := 0
     for _, origin := range originEntries {
@@ -49,22 +50,23 @@ func (p *TokenPool) build() {
       origins = nil 
     }
 
-    living, err := strconv.ParseBool(parts[6])
+    living, err := strconv.ParseBool(parts[7])
     if err != nil {
       living = false 
     }
 
-    password, err := lib.InsecureDecryptString(parts[2])
+    password, err := lib.InsecureDecryptString(parts[3])
     if err != nil {
       log.Error("Couldn't decrypt password at line " + strconv.Itoa(i + 1)) 
       continue
     }
 
     tokens[parts[0]] = TokenEntry{
-      User: parts[1], 
+      Tag: parts[1],
+      User: parts[2], 
       Password: password, 
-      HostName: parts[3], 
-      DBName: parts[4], 
+      HostName: parts[4], 
+      DBName: parts[5], 
       Origins: origins, 
       Living: living,
     }

@@ -15,7 +15,7 @@ decide what data it will receive and how it will receive it since you pass along
 
 You could consider PrQL to be a loose competitor to those two methods, but PrQL has different intentions. Although they 
 both allow you to define relationships within the data, neither give as much precision as actual SQL. This is especially
-problematic if you work in the realm of GIS. Certain databases/database extensions allow you perform complex operations on 
+problematic if you work in the realm of GIS. Certain databases/database extensions allow you perform  complex operations on 
 the dataset before handing the data over to your application. Implementing an array of custom, complex operations for your 
 app will most likely break REST conventions once you are all done writing your API. Why attempt to adhere to an ill-fitted 
 specification when you know that, in your work domain, you will always be breaking that spec?
@@ -45,7 +45,7 @@ First, you have to inform PrQL of your database's location. You save this inform
 ```sh
 sudo prql databases new \
             --name localpg \
-            --driver postgres \ # possible options for alpha are postgres and mysql
+            --driver postgres \ # possible options are postgres and mysql (will add more post-alpha)
             --port 5432
 ```
 
@@ -74,12 +74,10 @@ sudo prql tokens list
 
 ### Query your database
 
-To tell PrQL which credentials to use, we pass a token in a header called `PrQL-Token`. If you have a need to, 
-you can change the name of the header by editing your _prql.toml_ config file.
+To tell PrQL which credentials to use, we pass a token as a query parameter. 
 
 ```sh
-curl -H "PrQL-Token: f04e79dc8d1dd5453da438366c6162fb" \
-        "localhost:1999?query=SELECT id, name FROM users WHERE login_attempts > 3"
+wget -nv -O- "localhost:1999?token=f04e79dc8d1dd5453da438366c6162fb&query=SELECT id, name FROM users WHERE login_attempts > 3"
 ```
 
 
@@ -91,9 +89,14 @@ There are currently a two different ways of implementing the PrQL alpha:
 
 #### Go
 
+##### Dependencies
+- [dep](https://github.com/golang/dep#installation)
+- [staticcheck](https://github.com/dominikh/go-tools/tree/master/cmd/staticcheck)
+
 ```sh
-go get github.com/prql/prql
-cd $GOPATH/src/github.com/prql/prql
+mkdir -p "$GOPATH/src/github.com/prql"
+cd "$GOPATH/src/github.com/prql"
+git clone https://github.com/prql/prql && cd prql
 make
 ```
 
@@ -102,7 +105,7 @@ make
 ```sh
 make with-docker ARCH=$YOUR_DISTRO
 ```
-Where `$YOUR_DISTRO` is one of the following: darwin/amd64 darwin/386 freebsd/amd64 freebsd/386 linux/arm linux/arm64 linux/amd64 linux/386 solaris/amd64 windows/amd64 windows/386
+Where `$YOUR_DISTRO` is one of the following: `darwin/amd64` `darwin/386` `freebsd/amd64` `freebsd/386` `linux/arm` `linux/arm64` `linux/amd64` `linux/386` `solaris/amd64`
 
 You will find your binaries in the _build/_ folder with your distro name appended.
 

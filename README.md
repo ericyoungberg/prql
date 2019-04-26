@@ -1,6 +1,8 @@
 # PrQL: SQL over HTTP
-
 _Note: This project is still in development. It is __not safe__ for production environments._
+
+[![CircleCI](https://circleci.com/gh/PrQL/prql/tree/master.svg?style=svg)](https://circleci.com/gh/PrQL/prql/tree/master)
+
 
 #### What is PrQL?
 

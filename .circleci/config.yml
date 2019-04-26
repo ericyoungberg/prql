@@ -12,7 +12,8 @@ jobs:
           name: run build
           command: |
             dep ensure
-            go build -v
+            make prql
+            make prqld
       - run:
           name: run tests
           command: |

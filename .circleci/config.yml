@@ -12,8 +12,8 @@ jobs:
           name: run build
           command: |
             dep ensure
-            make prql
-            make prqld
+            make build-prql
+            make build-prqld
       - run:
           name: run tests
           command: |
@@ -28,7 +28,7 @@ jobs:
       - run:
           name: cross compile
           command: |
-            make release
+              echo 'Cross-compile later'
       - add_ssh_keys
       - run:
           name: create release
